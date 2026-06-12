@@ -1,0 +1,22 @@
+[
+  {"day":1,"book":"Genesi","chapter":1,"verse":1,"reference":"Genesi 1:1","reflection":""},
+  {"day":2,"book":"Salmi","chapter":1,"verse":1,"reference":"Salmi 1:1","reflection":""},
+  {"day":3,"book":"Proverbi","chapter":3,"verse":5,"reference":"Proverbi 3:5","reflection":""},
+  {"day":4,"book":"Isaia","chapter":41,"verse":10,"reference":"Isaia 41:10","reflection":""},
+  {"day":5,"book":"Geremia","chapter":29,"verse":11,"reference":"Geremia 29:11","reflection":""},
+  {"day":6,"book":"Salmi","chapter":23,"verse":1,"reference":"Salmi 23:1","reflection":""},
+  {"day":7,"book":"Matteo","chapter":11,"verse":28,"reference":"Matteo 11:28","reflection":""},
+  {"day":8,"book":"Giovanni","chapter":3,"verse":16,"reference":"Giovanni 3:16","reflection":""},
+  {"day":9,"book":"Romani","chapter":8,"verse":28,"reference":"Romani 8:28","reflection":""},
+  {"day":10,"book":"Filippesi","chapter":4,"verse":6,"reference":"Filippesi 4:6","reflection":""},
+  {"day":11,"book":"Filippesi","chapter":4,"verse":13,"reference":"Filippesi 4:13","reflection":""},
+  {"day":12,"book":"Salmi","chapter":27,"verse":1,"reference":"Salmi 27:1","reflection":""},
+  {"day":13,"book":"Salmi","chapter":46,"verse":1,"reference":"Salmi 46:1","reflection":""},
+  {"day":14,"book":"Isaia","chapter":40,"verse":31,"reference":"Isaia 40:31","reflection":""},
+  {"day":15,"book":"Giosuè","chapter":1,"verse":9,"reference":"Giosuè 1:9","reflection":""},
+  {"day":16,"book":"Giovanni","chapter":14,"verse":6,"reference":"Giovanni 14:6","reflection":""},
+  {"day":17,"book":"Salmi","chapter":91,"verse":1,"reference":"Salmi 91:1","reflection":""},
+  {"day":18,"book":"Romani","chapter":12,"verse":2,"reference":"Romani 12:2","reflection":""},
+  {"day":19,"book":"Efesini","chapter":2,"verse":8,"reference":"Efesini 2:8","reflection":""},
+  {"day":20,"book":"1 Pietro","chapter":5,"verse":7,"reference":"1 Pietro 5:7","reflection":""}
+]

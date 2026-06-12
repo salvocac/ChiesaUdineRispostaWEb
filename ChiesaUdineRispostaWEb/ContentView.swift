@@ -4,23 +4,6 @@ import AVFoundation
 import Speech
 import WebKit
 
-struct BibleData: Codable {
-    let verses: [BibleVerse]
-}
-
-struct BibleVerse: Codable, Identifiable {
-
-    var id: String {
-        "\(book)-\(chapter)-\(verse)"
-    }
-
-    let book_name: String
-    let book: Int
-    let chapter: Int
-    let verse: Int
-    let text: String
-}
-
 struct AudioTrack: Identifiable {
 
     let title: String
@@ -115,6 +98,9 @@ struct BibleView: View {
     @StateObject
     private var audioManager =
     BibleAudioManager()
+    
+    @State private var dailyVerse: DailyVerse? = DailyVerseManager.shared.verseOfToday()
+    @State private var todayVerse: BibleVerse?
     @State private var selectedBook = "Genesi"
     @State private var selectedChapter = 1
 
@@ -123,6 +109,11 @@ struct BibleView: View {
     @State private var copied = false
     
     @State private var verses: [BibleVerse] = []
+    
+    // Added properties for audio playback and speech synthesis
+    @State private var audioPlayer: AVAudioPlayer?
+    @State private var isPlayingMusic = false
+    let speechSynthesizer = AVSpeechSynthesizer()
 
     let books = [
         "Genesi","Esodo","Levitico","Numeri","Deuteronomio",
@@ -133,27 +124,6 @@ struct BibleView: View {
         "Filippesi","Colossesi","Apocalisse"
     ]
     
-    // Build the list of available Italian voices dynamically
-    let availableItalianVoices: [(String, String)] = {
-        let voices = AVSpeechSynthesisVoice.speechVoices().filter { $0.language == "it-IT" }
-        for v in voices {
-            print("Disponibile: \(v.name) [\(v.quality.rawValue)]")
-        }
-        return voices.map { ("\($0.name) (\($0.quality == .premium ? "Premium" : "Normale"))", $0.name) }
-    }()
-    
-    let premiumVoices: [(String, String)]
-    
-    @State private var selectedVoiceLabel: String
-
-    init() {
-        // Initialize premiumVoices with availableItalianVoices
-        self.premiumVoices = availableItalianVoices
-        
-        // Initialize selectedVoiceLabel with the first voice label or empty string if none
-        _selectedVoiceLabel = State(initialValue: premiumVoices.first?.0 ?? "")
-    }
-
     var chapters: [Int] {
 
         let filtered = verses.filter {
@@ -210,13 +180,99 @@ struct BibleView: View {
         \(chapterText)
         """
     }
+    
+    // Function to start playing relax music
+    func playRelaxMusic() {
+        guard let url = Bundle.main.url(forResource: "relax", withExtension: "mp3") else { return }
+        do {
+            audioPlayer = try AVAudioPlayer(contentsOf: url)
+            audioPlayer?.numberOfLoops = -1
+            audioPlayer?.play()
+            isPlayingMusic = true
+        } catch {
+            print("Could not play relax music: \(error)")
+        }
+    }
+    // Function to pause music
+    func pauseMusic() {
+        audioPlayer?.pause()
+        isPlayingMusic = false
+    }
+    // Function to speak with Luca's voice
+    func speakWithLuca(_ text: String) {
+        let utterance = AVSpeechUtterance(string: text)
+        utterance.voice = AVSpeechSynthesisVoice(identifier: "com.apple.ttsbundle.siri_male_it-IT_compact") // "Luca" voice
+        utterance.rate = 0.5
+        speechSynthesizer.speak(utterance)
+    }
+    
     var body: some View {
 
         NavigationStack {
 
             VStack {
                 
-                //    HeaderLogoView()
+                if let dailyVerse = dailyVerse {
+                    VStack(spacing: 10) {
+                        Text("📖 Versetto e commento del giorno")
+                            .font(.headline)
+                        Text(dailyVerse.reference ?? "Versetto non disponibile")
+                            .font(.title3)
+                            .bold()
+                        Text(dailyVerse.reflection ?? "")
+                            .multilineTextAlignment(.center)
+                            .padding(.horizontal)
+                        
+                        HStack(spacing: 40) {
+                            Button {
+                                let textToSpeak = "Versetto del giorno: \(dailyVerse.reference ?? "Versetto del giorno"). Commento: \(dailyVerse.reflection ?? "")"
+                                speakWithLuca(textToSpeak)
+                            } label: {
+                                Image(systemName: "play.circle.fill")
+                                    .font(.system(size: 40))
+                                    .foregroundColor(.green)
+                            }
+                            .accessibilityLabel("Riproduci versetto del giorno")
+                            
+                            Button {
+                                speechSynthesizer.stopSpeaking(at: .immediate)
+                            } label: {
+                                Image(systemName: "stop.circle.fill")
+                                    .font(.system(size: 40))
+                                    .foregroundColor(.red)
+                            }
+                            .accessibilityLabel("Ferma riproduzione")
+                        }
+                        .padding(.top, 5)
+                    }
+                    .padding()
+                    .background(Color.white.opacity(0.9))
+                    .cornerRadius(20)
+                    .padding(.horizontal)
+                }
+                
+                // Added HStack with music play/pause, share, and speak with Luca buttons
+                HStack(spacing: 16) {
+                    Button(action: {
+                        if isPlayingMusic { pauseMusic() } else { playRelaxMusic() }
+                    }) {
+                        Image(systemName: isPlayingMusic ? "pause.circle.fill" : "play.circle.fill")
+                            .font(.largeTitle)
+                    }
+
+                    if let verse = todayVerse {
+                        ShareLink(item: verse.text) {
+                            Image(systemName: "square.and.arrow.up")
+                                .font(.largeTitle)
+                        }
+                        Button(action: { speakWithLuca(verse.text) }) {
+                            Image(systemName: "speaker.wave.2.fill")
+                                .font(.largeTitle)
+                        }
+                    }
+                }
+                .padding(.horizontal)
+                .padding(.bottom, 4)
                 
                 VStack(spacing: 2) {
                     
@@ -273,18 +329,13 @@ struct BibleView: View {
                     .padding(.horizontal)
                 }
                 
-                // New premium voice picker
-                
-                
                 HStack(spacing: 30) {
-                    let selectedVoiceName = premiumVoices.first(where: { $0.0 == selectedVoiceLabel })?.1 ?? "Alice"
-                    
                     Button {
                         let intro = "\(selectedBook), capitolo \(selectedChapter), versetti da \(startVerse) a \(endVerse)."
                         
                         audioManager.speak(
                             text: intro + " " + chapterText,
-                            voiceName: selectedVoiceName
+                            voiceName: "com.apple.ttsbundle.siri_male_it-IT_compact"
                         )
                     } label: {
                         
@@ -374,20 +425,7 @@ struct BibleView: View {
                     }
                 }
                 .padding(.vertical)
-                if verticalSizeClass != UserInterfaceSizeClass.compact {
-
-                    Picker("", selection: $selectedVoiceLabel) {
-                        ForEach(premiumVoices, id: \.0) { voice in
-                            Text(voice.0)
-                        }
-                    }
-                    .pickerStyle(.menu)
-                    .padding(.vertical, 4)
-                    .padding(.horizontal, 10)
-                    .background(Color.gray.opacity(0.1))
-                    .cornerRadius(10)
-                    .padding(.horizontal)
-                }
+                
                 if copied {
                     
                     Text("Testo copiato negli appunti")
@@ -442,6 +480,15 @@ struct BibleView: View {
             .onAppear {
 
                 loadBible()
+
+                todayVerse = BibleManager.shared.verseOfToday()
+
+                dailyVerse = DailyVerseManager.shared.verseOfToday()
+
+                print("todayVerse =", todayVerse?.text ?? "NIL")
+
+                print("BibleManager count =",
+                      BibleManager.shared.verses.count)
             }
 
             .onChange(of: selectedChapter) {
@@ -489,17 +536,31 @@ struct BibleView: View {
 }
 
 struct ContentView: View {
-
+    
     @State private var showBible = false
+    @State private var showAudio = false
+    @State private var showAbout = false
+    
     @State private var showWebsite = false
     @State private var showYoutube = false
-
+    
+    @State private var dailyVerse: DailyVerse? = DailyVerseManager.shared.verseOfToday()
+    
+    let speechSynthesizer = AVSpeechSynthesizer()
+    
+    func speakWithLuca(_ text: String) {
+        let utterance = AVSpeechUtterance(string: text)
+        utterance.voice = AVSpeechSynthesisVoice(identifier: "com.apple.ttsbundle.siri_male_it-IT_compact") // "Luca" voice
+        utterance.rate = 0.5
+        speechSynthesizer.speak(utterance)
+    }
+    
     var body: some View {
-
+        
         NavigationStack {
-
+            
             ZStack {
-
+                
                 LinearGradient(
                     colors: [
                         Color.white,
@@ -509,36 +570,75 @@ struct ContentView: View {
                     endPoint: .bottom
                 )
                 .ignoresSafeArea()
-
+                
                 VStack(spacing: 30) {
-
+                    
+                    if let dailyVerse = dailyVerse {
+                        VStack(spacing: 10) {
+                            Text("📖 Versetto e commento del giorno")
+                                .font(.headline)
+                            Text(dailyVerse.reference ?? "Versetto non disponibile")
+                                .font(.title3)
+                                .bold()
+                            Text(dailyVerse.reflection ?? "")
+                                .multilineTextAlignment(.center)
+                                .padding(.horizontal)
+                            
+                            HStack(spacing: 40) {
+                                Button {
+                                    let textToSpeak = "Versetto del giorno: \(dailyVerse.reference ?? "Versetto del giorno"). Commento: \(dailyVerse.reflection ?? "")"
+                                    speakWithLuca(textToSpeak)
+                                } label: {
+                                    Image(systemName: "play.circle.fill")
+                                        .font(.system(size: 40))
+                                        .foregroundColor(.green)
+                                }
+                                .accessibilityLabel("Riproduci versetto del giorno")
+                                
+                                Button {
+                                    speechSynthesizer.stopSpeaking(at: .immediate)
+                                } label: {
+                                    Image(systemName: "stop.circle.fill")
+                                        .font(.system(size: 40))
+                                        .foregroundColor(.red)
+                                }
+                                .accessibilityLabel("Ferma riproduzione")
+                            }
+                            .padding(.top, 5)
+                        }
+                        .padding()
+                        .background(Color.white.opacity(0.9))
+                        .cornerRadius(20)
+                        .padding(.horizontal)
+                    }
+                    
                     Spacer()
-
+                    
                     Image("logo")
                         .resizable()
                         .scaledToFit()
                         .frame(width: 120)
-
+                    
                     Text("Una Parola per Te")
                         .font(.largeTitle)
                         .fontWeight(.bold)
-
+                    
                     Text("Chiesa Cristiana Evangelica Friulana di Udine")
                         .font(.headline)
                         .multilineTextAlignment(.center)
                         .foregroundColor(.gray)
                         .padding(.horizontal)
-
+                    
                     Button {
-
+                        
                         showBible = true
-
+                        
                     } label: {
-
+                        
                         HStack {
-
+                            
                             Image(systemName: "book.fill")
-
+                            
                             Text("Apri Bibbia")
                                 .fontWeight(.bold)
                         }
@@ -549,17 +649,17 @@ struct ContentView: View {
                         .cornerRadius(20)
                         .padding(.horizontal)
                     }
-
+                    
                     Button {
-
+                        
                         showWebsite = true
-
+                        
                     } label: {
-
+                        
                         HStack {
-
+                            
                             Image(systemName: "globe")
-
+                            
                             Text("Sito Web")
                                 .fontWeight(.bold)
                         }
@@ -570,18 +670,18 @@ struct ContentView: View {
                         .cornerRadius(20)
                         .padding(.horizontal)
                     }
-
+                    
                     Button {
-
+                        
                         showYoutube = true
-
+                        
                     } label: {
-
+                        
                         HStack {
-
+                            
                             Image(systemName:
                                     "play.rectangle.fill")
-
+                            
                             Text("Canale YouTube")
                                 .fontWeight(.bold)
                         }
@@ -592,23 +692,23 @@ struct ContentView: View {
                         .cornerRadius(20)
                         .padding(.horizontal)
                     }
-
+                    
                     Spacer()
-
+                    
                     Text("© CCE Friulana di Udine")
                         .font(.footnote)
                         .foregroundColor(.gray)
                         .padding(.bottom)
                 }
             }
-
+            
             .fullScreenCover(isPresented: $showBible) {
-
+                
                 BibleView()
             }
-
+            
             .fullScreenCover(isPresented: $showWebsite) {
-
+                
                 WebsiteView(
                     url: URL(
                         string:
@@ -617,9 +717,9 @@ struct ContentView: View {
                     title: "Sito Web"
                 )
             }
-
+            
             .fullScreenCover(isPresented: $showYoutube) {
-
+                
                 WebsiteView(
                     url: URL(
                         string:
@@ -628,6 +728,10 @@ struct ContentView: View {
                     title: "YouTube"
                 )
             }
+            .onAppear {
+                dailyVerse = DailyVerseManager.shared.verseOfToday()
+            }
         }
     }
 }
+
