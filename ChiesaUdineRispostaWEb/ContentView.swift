@@ -240,39 +240,46 @@ struct BibleView: View {
                     .cornerRadius(10)
                     .padding(.horizontal)
                     
-                    HStack(spacing: 12) {
-                        
-                        Text("Cap.")
-                            .frame(width: 40)
-                        
-                        Picker("", selection: $selectedChapter) {
-                            ForEach(chapters, id: \.self) { chapter in
-                                Text("\(chapter)")
+                    HStack(spacing: 8) {
+
+                        VStack {
+                            Text("Cap.")
+                                .font(.caption)
+
+                            Picker("", selection: $selectedChapter) {
+                                ForEach(chapters, id: \.self) { chapter in
+                                    Text("\(chapter)")
+                                }
                             }
                         }
-                        .frame(width: 80)
-                        
-                        Text("Da")
-                            .frame(width: 30)
-                        
-                        Picker("", selection: $startVerse) {
-                            ForEach(verseNumbers, id: \.self) { verse in
-                                Text("\(verse)")
+
+                        VStack {
+                            Text("Da")
+                                .font(.caption)
+
+                            Picker("", selection: $startVerse) {
+                                ForEach(verseNumbers, id: \.self) { verse in
+                                    Text("\(verse)")
+                                }
                             }
                         }
-                        .frame(width: 80)
-                        
-                        Text("A")
-                            .frame(width: 20)
-                        
-                        Picker("", selection: $endVerse) {
-                            ForEach(verseNumbers, id: \.self) { verse in
-                                Text("\(verse)")
+
+                        VStack {
+                            Text("A")
+                                .font(.caption)
+
+                            Picker("", selection: $endVerse) {
+                                ForEach(verseNumbers, id: \.self) { verse in
+                                    Text("\(verse)")
+                                }
                             }
                         }
-                        .frame(width: 80)
                     }
                     .pickerStyle(.menu)
+                    .padding()
+                    .background(Color.gray.opacity(0.1))
+                    .cornerRadius(15)
+                    .padding(.horizontal)                    .pickerStyle(.menu)
                     .padding()
                     .background(Color.gray.opacity(0.1))
                     .cornerRadius(15)
