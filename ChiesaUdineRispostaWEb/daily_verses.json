@@ -1,22 +1,62 @@
 [
-  {"day":1,"book":"Genesi","chapter":1,"verse":1,"reference":"Genesi 1:1","reflection":""},
-  {"day":2,"book":"Salmi","chapter":1,"verse":1,"reference":"Salmi 1:1","reflection":""},
-  {"day":3,"book":"Proverbi","chapter":3,"verse":5,"reference":"Proverbi 3:5","reflection":""},
-  {"day":4,"book":"Isaia","chapter":41,"verse":10,"reference":"Isaia 41:10","reflection":""},
-  {"day":5,"book":"Geremia","chapter":29,"verse":11,"reference":"Geremia 29:11","reflection":""},
-  {"day":6,"book":"Salmi","chapter":23,"verse":1,"reference":"Salmi 23:1","reflection":""},
-  {"day":7,"book":"Matteo","chapter":11,"verse":28,"reference":"Matteo 11:28","reflection":""},
-  {"day":8,"book":"Giovanni","chapter":3,"verse":16,"reference":"Giovanni 3:16","reflection":""},
-  {"day":9,"book":"Romani","chapter":8,"verse":28,"reference":"Romani 8:28","reflection":""},
-  {"day":10,"book":"Filippesi","chapter":4,"verse":6,"reference":"Filippesi 4:6","reflection":""},
-  {"day":11,"book":"Filippesi","chapter":4,"verse":13,"reference":"Filippesi 4:13","reflection":""},
-  {"day":12,"book":"Salmi","chapter":27,"verse":1,"reference":"Salmi 27:1","reflection":""},
-  {"day":13,"book":"Salmi","chapter":46,"verse":1,"reference":"Salmi 46:1","reflection":""},
-  {"day":14,"book":"Isaia","chapter":40,"verse":31,"reference":"Isaia 40:31","reflection":""},
-  {"day":15,"book":"Giosuè","chapter":1,"verse":9,"reference":"Giosuè 1:9","reflection":""},
-  {"day":16,"book":"Giovanni","chapter":14,"verse":6,"reference":"Giovanni 14:6","reflection":""},
-  {"day":17,"book":"Salmi","chapter":91,"verse":1,"reference":"Salmi 91:1","reflection":""},
-  {"day":18,"book":"Romani","chapter":12,"verse":2,"reference":"Romani 12:2","reflection":""},
-  {"day":19,"book":"Efesini","chapter":2,"verse":8,"reference":"Efesini 2:8","reflection":""},
-  {"day":20,"book":"1 Pietro","chapter":5,"verse":7,"reference":"1 Pietro 5:7","reflection":""}
+  {
+    "day": 1,
+    "reference": "Genesi 1:1",
+    "verseText": "Nel principio Dio creò i cieli e la terra.",
+    "reflection": "Dio è il Creatore di ogni cosa. Nulla esiste senza la Sua volontà e il Suo potere. Quando guardi alla tua vita, ricorda che Colui che ha creato l'universo è anche in grado di guidare i tuoi passi. Affidati a Lui con fiducia."
+  },
+  {
+    "day": 2,
+    "reference": "Salmi 1:1",
+    "verseText": "Beato l'uomo che non cammina secondo il consiglio degli empi.",
+    "reflection": "Le scelte che facciamo ogni giorno influenzano il nostro cammino spirituale. Dio ci invita a seguire la Sua Parola invece delle mode del mondo. Chi rimane saldo nel Signore trova vera gioia e stabilità."
+  },
+  {
+    "day": 3,
+    "reference": "Proverbi 3:5",
+    "verseText": "Confida nel SIGNORE con tutto il cuore e non ti appoggiare sul tuo discernimento.",
+    "reflection": "Non sempre comprendiamo ciò che accade intorno a noi. Tuttavia Dio vede oltre ciò che noi possiamo vedere. Confidare in Lui significa riposare nella certezza che il Suo piano è perfetto e buono."
+  },
+  {
+    "day": 4,
+    "reference": "Isaia 41:10",
+    "verseText": "Non temere, perché io sono con te; non ti smarrire, perché io sono il tuo Dio.",
+    "reflection": "Le paure possono paralizzare il cuore, ma la presenza di Dio porta pace. Egli non ti abbandona nelle difficoltà. Oggi puoi affrontare ogni situazione sapendo che il Signore è accanto a te."
+  },
+  {
+    "day": 5,
+    "reference": "Geremia 29:11",
+    "verseText": "Infatti io so i pensieri che medito per voi, dice il SIGNORE.",
+    "reflection": "Dio non improvvisa mai. Egli ha un progetto pieno di speranza per i Suoi figli. Anche quando il cammino sembra incerto, puoi avere fiducia che il Signore sta operando per il tuo bene."
+  },
+  {
+    "day": 6,
+    "reference": "Salmi 23:1",
+    "verseText": "Il SIGNORE è il mio pastore: nulla mi manca.",
+    "reflection": "Come un buon pastore si prende cura delle sue pecore, così Dio si prende cura di te. Egli conosce i tuoi bisogni e provvede secondo la Sua sapienza. Riposa nella Sua fedeltà."
+  },
+  {
+    "day": 7,
+    "reference": "Matteo 11:28",
+    "verseText": "Venite a me, voi tutti che siete affaticati e oppressi, e io vi darò riposo.",
+    "reflection": "Gesù conosce il peso che porti nel cuore. Egli non ti invita a diventare più forte da solo, ma a portare ogni cosa a Lui. Nel Signore trovi pace, conforto e nuovo vigore."
+  },
+  {
+    "day": 8,
+    "reference": "Giovanni 3:16",
+    "verseText": "Perché Dio ha tanto amato il mondo, che ha dato il suo unigenito Figlio.",
+    "reflection": "L'amore di Dio è il centro del Vangelo. Egli ha donato Gesù affinché ogni persona possa ricevere salvezza e vita eterna. Ricorda oggi quanto sei prezioso agli occhi del Signore."
+  },
+  {
+    "day": 9,
+    "reference": "Romani 8:28",
+    "verseText": "Or sappiamo che tutte le cose cooperano al bene di quelli che amano Dio.",
+    "reflection": "Dio opera in ogni circostanza per il bene dei Suoi figli. Anche quando non comprendi ciò che sta accadendo, il Signore sta lavorando. Nessuna situazione è fuori dal Suo controllo. Continua a confidare in Lui."
+  },
+  {
+    "day": 10,
+    "reference": "Filippesi 4:6",
+    "verseText": "Non angustiatevi di nulla, ma in ogni cosa fate conoscere le vostre richieste a Dio.",
+    "reflection": "La preoccupazione consuma le energie e toglie serenità. Dio ti invita a trasformare ogni ansia in preghiera. Quando affidi ogni cosa al Signore, la Sua pace custodisce il tuo cuore."
+  }
 ]

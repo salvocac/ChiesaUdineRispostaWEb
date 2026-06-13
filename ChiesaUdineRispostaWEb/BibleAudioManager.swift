@@ -26,12 +26,16 @@ final class BibleAudioManager: NSObject, ObservableObject, AVSpeechSynthesizerDe
                 .playback,
                 mode: .spokenAudio,
                 options: [
+                    .duckOthers,
                     .allowBluetooth,
                     .allowAirPlay
                 ]
             )
 
-            try AVAudioSession.sharedInstance().setActive(true)
+            try AVAudioSession.sharedInstance().setActive(
+                true,
+                options: .notifyOthersOnDeactivation
+            )
 
         } catch {
 

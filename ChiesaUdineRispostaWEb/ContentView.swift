@@ -99,8 +99,7 @@ struct BibleView: View {
     private var audioManager =
     BibleAudioManager()
     
-    @State private var dailyVerse: DailyVerse? = DailyVerseManager.shared.verseOfToday()
-    @State private var todayVerse: BibleVerse?
+   
     @State private var selectedBook = "Genesi"
     @State private var selectedChapter = 1
 
@@ -212,45 +211,7 @@ struct BibleView: View {
 
             VStack {
                 
-                if let dailyVerse = dailyVerse {
-                    VStack(spacing: 10) {
-                        Text("📖 Versetto e commento del giorno")
-                            .font(.headline)
-                        Text(dailyVerse.reference ?? "Versetto non disponibile")
-                            .font(.title3)
-                            .bold()
-                        Text(dailyVerse.reflection ?? "")
-                            .multilineTextAlignment(.center)
-                            .padding(.horizontal)
-                        
-                        HStack(spacing: 40) {
-                            Button {
-                                let textToSpeak = "Versetto del giorno: \(dailyVerse.reference ?? "Versetto del giorno"). Commento: \(dailyVerse.reflection ?? "")"
-                                speakWithLuca(textToSpeak)
-                            } label: {
-                                Image(systemName: "play.circle.fill")
-                                    .font(.system(size: 40))
-                                    .foregroundColor(.green)
-                            }
-                            .accessibilityLabel("Riproduci versetto del giorno")
-                            
-                            Button {
-                                speechSynthesizer.stopSpeaking(at: .immediate)
-                            } label: {
-                                Image(systemName: "stop.circle.fill")
-                                    .font(.system(size: 40))
-                                    .foregroundColor(.red)
-                            }
-                            .accessibilityLabel("Ferma riproduzione")
-                        }
-                        .padding(.top, 5)
-                    }
-                    .padding()
-                    .background(Color.white.opacity(0.9))
-                    .cornerRadius(20)
-                    .padding(.horizontal)
-                }
-                
+           
                 // Added HStack with music play/pause, share, and speak with Luca buttons
                 HStack(spacing: 16) {
                     Button(action: {
@@ -260,17 +221,7 @@ struct BibleView: View {
                             .font(.largeTitle)
                     }
 
-                    if let verse = todayVerse {
-                        ShareLink(item: verse.text) {
-                            Image(systemName: "square.and.arrow.up")
-                                .font(.largeTitle)
-                        }
-                        Button(action: { speakWithLuca(verse.text) }) {
-                            Image(systemName: "speaker.wave.2.fill")
-                                .font(.largeTitle)
-                        }
-                    }
-                }
+                  }
                 .padding(.horizontal)
                 .padding(.bottom, 4)
                 
@@ -481,12 +432,6 @@ struct BibleView: View {
 
                 loadBible()
 
-                todayVerse = BibleManager.shared.verseOfToday()
-
-                dailyVerse = DailyVerseManager.shared.verseOfToday()
-
-                print("todayVerse =", todayVerse?.text ?? "NIL")
-
                 print("BibleManager count =",
                       BibleManager.shared.verses.count)
             }
@@ -544,23 +489,13 @@ struct ContentView: View {
     @State private var showWebsite = false
     @State private var showYoutube = false
     
-    @State private var dailyVerse: DailyVerse? = DailyVerseManager.shared.verseOfToday()
-    
-    let speechSynthesizer = AVSpeechSynthesizer()
-    
-    func speakWithLuca(_ text: String) {
-        let utterance = AVSpeechUtterance(string: text)
-        utterance.voice = AVSpeechSynthesisVoice(identifier: "com.apple.ttsbundle.siri_male_it-IT_compact") // "Luca" voice
-        utterance.rate = 0.5
-        speechSynthesizer.speak(utterance)
-    }
+    @State private var showDailyVerse = false
     
     var body: some View {
         
         NavigationStack {
             
             ZStack {
-                
                 LinearGradient(
                     colors: [
                         Color.white,
@@ -570,64 +505,35 @@ struct ContentView: View {
                     endPoint: .bottom
                 )
                 .ignoresSafeArea()
-                
+
                 VStack(spacing: 30) {
-                    
-                    if let dailyVerse = dailyVerse {
-                        VStack(spacing: 10) {
-                            Text("📖 Versetto e commento del giorno")
-                                .font(.headline)
-                            Text(dailyVerse.reference ?? "Versetto non disponibile")
-                                .font(.title3)
-                                .bold()
-                            Text(dailyVerse.reflection ?? "")
-                                .multilineTextAlignment(.center)
-                                .padding(.horizontal)
-                            
-                            HStack(spacing: 40) {
-                                Button {
-                                    let textToSpeak = "Versetto del giorno: \(dailyVerse.reference ?? "Versetto del giorno"). Commento: \(dailyVerse.reflection ?? "")"
-                                    speakWithLuca(textToSpeak)
-                                } label: {
-                                    Image(systemName: "play.circle.fill")
-                                        .font(.system(size: 40))
-                                        .foregroundColor(.green)
-                                }
-                                .accessibilityLabel("Riproduci versetto del giorno")
-                                
-                                Button {
-                                    speechSynthesizer.stopSpeaking(at: .immediate)
-                                } label: {
-                                    Image(systemName: "stop.circle.fill")
-                                        .font(.system(size: 40))
-                                        .foregroundColor(.red)
-                                }
-                                .accessibilityLabel("Ferma riproduzione")
-                            }
-                            .padding(.top, 5)
-                        }
-                        .padding()
-                        .background(Color.white.opacity(0.9))
-                        .cornerRadius(20)
-                        .padding(.horizontal)
-                    }
-                    
-                    Spacer()
-                    
+
                     Image("logo")
                         .resizable()
                         .scaledToFit()
                         .frame(width: 120)
                     
-                    Text("Una Parola per Te")
-                        .font(.largeTitle)
-                        .fontWeight(.bold)
-                    
                     Text("Chiesa Cristiana Evangelica Friulana di Udine")
                         .font(.headline)
                         .multilineTextAlignment(.center)
-                        .foregroundColor(.gray)
+                        .foregroundColor(.black)
                         .padding(.horizontal)
+
+                    Button {
+                        showDailyVerse = true
+                    } label: {
+                        HStack {
+                            Image(systemName: "quote.bubble.fill")
+                            Text("Versetto del giorno")
+                                .fontWeight(.bold)
+                        }
+                        .foregroundColor(.white)
+                        .padding()
+                        .frame(maxWidth: .infinity)
+                        .background(Color.blue)
+                        .cornerRadius(20)
+                        .padding(.horizontal)
+                    }
                     
                     Button {
                         
@@ -642,7 +548,7 @@ struct ContentView: View {
                             Text("Apri Bibbia")
                                 .fontWeight(.bold)
                         }
-                        .foregroundColor(.white)
+                        .foregroundColor(.black)
                         .padding()
                         .frame(maxWidth: .infinity)
                         .background(Color.blue)
@@ -701,7 +607,9 @@ struct ContentView: View {
                         .padding(.bottom)
                 }
             }
-            
+            .fullScreenCover(isPresented: $showDailyVerse) {
+                DailyVerseView()
+            }
             .fullScreenCover(isPresented: $showBible) {
                 
                 BibleView()
@@ -728,10 +636,6 @@ struct ContentView: View {
                     title: "YouTube"
                 )
             }
-            .onAppear {
-                dailyVerse = DailyVerseManager.shared.verseOfToday()
-            }
         }
     }
 }
-
