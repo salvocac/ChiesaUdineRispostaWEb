@@ -490,7 +490,7 @@ struct ContentView: View {
     @State private var showYoutube = false
     
     @State private var showDailyVerse = false
-    
+    @State private var showAudioSettings = false
     var body: some View {
         
         NavigationStack {
@@ -600,7 +600,26 @@ struct ContentView: View {
                     }
                     
                     Spacer()
-                    
+                    Button {
+
+                        showAudioSettings = true
+
+                    } label: {
+
+                        HStack {
+
+                            Image(systemName: "speaker.wave.3.fill")
+
+                            Text("Impostazioni Audio")
+                                .fontWeight(.bold)
+                        }
+                        .foregroundColor(.white)
+                        .padding()
+                        .frame(maxWidth: .infinity)
+                        .background(Color.orange)
+                        .cornerRadius(20)
+                        .padding(.horizontal)
+                    }
                     Text("© CCE Friulana di Udine")
                         .font(.footnote)
                         .foregroundColor(.gray)
@@ -627,7 +646,7 @@ struct ContentView: View {
             }
             
             .fullScreenCover(isPresented: $showYoutube) {
-                
+
                 WebsiteView(
                     url: URL(
                         string:
@@ -635,7 +654,15 @@ struct ContentView: View {
                     )!,
                     title: "YouTube"
                 )
+                .sheet(isPresented: $showAudioSettings) {
+                    AudioSettingsView()
+                }
             }
+
+            .sheet(isPresented: $showAudioSettings) {
+                AudioSettingsView()
+            }
+             }
         }
     }
-}
+

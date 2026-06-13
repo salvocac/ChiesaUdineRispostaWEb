@@ -53,10 +53,17 @@ final class BibleAudioManager: NSObject, ObservableObject, AVSpeechSynthesizerDe
         }
 
         let utterance = AVSpeechUtterance(string: text)
+        let selectedVoice = UserDefaults.standard.string(
+            forKey: "selectedVoiceIdentifier"
+        )
 
-        if let name = voiceName, let premiumVoice = AVSpeechSynthesisVoice.speechVoices().first(where: { $0.name == name }) {
-            utterance.voice = premiumVoice
+        if let selectedVoice,
+           let voice = AVSpeechSynthesisVoice(identifier: selectedVoice) {
+
+            utterance.voice = voice
+
         } else if let voice = AVSpeechSynthesisVoice(language: "it-IT") {
+
             utterance.voice = voice
         }
 
@@ -67,6 +74,11 @@ final class BibleAudioManager: NSObject, ObservableObject, AVSpeechSynthesizerDe
         utterance.postUtteranceDelay = 0.1
 
         synthesizer.speak(utterance)
+        for voice in AVSpeechSynthesisVoice.speechVoices() {
+            if voice.language.starts(with: "it") {
+                print("ITALIANA:", voice.name, "-", voice.identifier)
+            }
+        }
     }
 
     func pause() {

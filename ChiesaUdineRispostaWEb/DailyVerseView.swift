@@ -105,11 +105,15 @@ struct DailyVerseView: View {
         """
 
         let utterance = AVSpeechUtterance(string: text)
+        let selectedVoice = UserDefaults.standard.string(
+            forKey: "selectedVoiceIdentifier"
+        )
 
-        if let voice = AVSpeechSynthesisVoice(language: "it-IT") {
+        if let selectedVoice,
+           let voice = AVSpeechSynthesisVoice(identifier: selectedVoice) {
+
             utterance.voice = voice
         }
-
         utterance.rate = 0.5
 
         synthesizer.speak(utterance)
