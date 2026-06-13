@@ -99,11 +99,11 @@
 				};
 			};
 			buildConfigurationList = C91B6E732FB6D941001ADF0E /* Build configuration list for PBXProject "ChiesaUdineRispostaWEb" */;
-			developmentRegion = en;
+			developmentRegion = it;
 			hasScannedForEncodings = 0;
 			knownRegions = (
-				en,
 				Base,
+				it,
 			);
 			mainGroup = C91B6E6F2FB6D941001ADF0E;
 			minimizedProjectReferenceProxies = 1;

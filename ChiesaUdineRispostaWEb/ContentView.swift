@@ -106,7 +106,6 @@ struct BibleView: View {
     @State private var startVerse = 1
     @State private var endVerse = 1
     @State private var copied = false
-    
     @State private var verses: [BibleVerse] = []
     
     // Added properties for audio playback and speech synthesis
@@ -488,7 +487,6 @@ struct ContentView: View {
     
     @State private var showWebsite = false
     @State private var showYoutube = false
-    
     @State private var showDailyVerse = false
     @State private var showAudioSettings = false
     var body: some View {
@@ -598,7 +596,51 @@ struct ContentView: View {
                         .cornerRadius(20)
                         .padding(.horizontal)
                     }
-                    
+                    Button {
+
+                        if let url = URL(
+                            string: "https://www.instagram.com/chiesaevangelicadiudine/"
+                        ) {
+                            UIApplication.shared.open(url)
+                        }
+
+                    } label: {
+
+                        HStack {
+
+                            Image(systemName: "camera.fill")
+
+                            Text("Instagram")
+                                .fontWeight(.bold)
+                        }
+                        .foregroundColor(.white)
+                        .padding()
+                        .frame(maxWidth: .infinity)
+                        .background(Color.purple)
+                        .cornerRadius(20)
+                        .padding(.horizontal)
+                    }
+                    Button {
+
+                        if let url = URL(
+                            string: "https://www.facebook.com/share/1HxDBZvDhC/?mibextid=wwXIfr"
+                        ) {
+                            UIApplication.shared.open(url)
+                        }
+
+                    } label: {
+                        HStack {
+                            Image(systemName: "person.2.fill")
+                            Text("Facebook")
+                                .fontWeight(.bold)
+                        }
+                        .foregroundColor(.white)
+                        .padding()
+                        .frame(maxWidth: .infinity)
+                        .background(Color.blue)
+                        .cornerRadius(20)
+                        .padding(.horizontal)
+                    }
                     Spacer()
                     Button {
 
@@ -649,20 +691,17 @@ struct ContentView: View {
 
                 WebsiteView(
                     url: URL(
-                        string:
-                        "https://www.youtube.com/channel/UCqtwkH2xz1fFoTObbDXcpOw"
+                        string: "https://www.youtube.com/channel/UCqtwkH2xz1fFoTObbDXcpOw"
                     )!,
                     title: "YouTube"
                 )
-                .sheet(isPresented: $showAudioSettings) {
-                    AudioSettingsView()
-                }
             }
 
             .sheet(isPresented: $showAudioSettings) {
                 AudioSettingsView()
             }
-             }
-        }
-    }
 
+           }
+            }
+            
+             }
