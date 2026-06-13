@@ -504,19 +504,12 @@ struct ContentView: View {
                 )
                 .ignoresSafeArea()
 
-                VStack(spacing: 30) {
-
+                VStack(spacing: 8) {
                     Image("logo")
                         .resizable()
                         .scaledToFit()
-                        .frame(width: 120)
-                    
-                    Text("Chiesa Cristiana Evangelica Friulana di Udine")
-                        .font(.headline)
-                        .multilineTextAlignment(.center)
-                        .foregroundColor(.black)
-                        .padding(.horizontal)
-
+                        .frame(maxWidth: 180)
+                        .padding(.top, 10)
                     Button {
                         showDailyVerse = true
                     } label: {
@@ -593,6 +586,30 @@ struct ContentView: View {
                         .padding()
                         .frame(maxWidth: .infinity)
                         .background(Color.red)
+                        .cornerRadius(20)
+                        .padding(.horizontal)
+                    }
+                    Button {
+
+                        if let url = URL(
+                            string: "https://maps.google.com/?q=Via+Croazia+14+33100+Udine"
+                        ) {
+                            UIApplication.shared.open(url)
+                        }
+
+                    } label: {
+
+                        HStack {
+
+                            Image(systemName: "map.fill")
+
+                            Text("Dove siamo")
+                                .fontWeight(.bold)
+                        }
+                        .foregroundColor(.white)
+                        .padding()
+                        .frame(maxWidth: .infinity)
+                        .background(Color.teal)
                         .cornerRadius(20)
                         .padding(.horizontal)
                     }
@@ -703,5 +720,4 @@ struct ContentView: View {
 
            }
             }
-            
-             }
+    }
