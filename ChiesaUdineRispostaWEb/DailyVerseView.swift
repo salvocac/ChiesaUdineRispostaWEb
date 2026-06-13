@@ -2,7 +2,7 @@ import SwiftUI
 import AVFoundation
 
 struct DailyVerseView: View {
-
+    @Environment(\.dismiss) private var dismiss
     @State private var dailyVerse: DailyVerse? =
         DailyVerseManager.shared.verseOfToday()
 
@@ -58,6 +58,17 @@ struct DailyVerseView: View {
             }
             .navigationTitle("Versetto del giorno")
             .navigationBarTitleDisplayMode(.inline)
+            .toolbar {
+                ToolbarItem(placement: .topBarTrailing) {
+                    Button {
+                        dismiss()
+                    } label: {
+                        Image(systemName: "xmark.circle.fill")
+                            .font(.title3)
+                    }
+                }
+            }
+           
         }
     }
 
