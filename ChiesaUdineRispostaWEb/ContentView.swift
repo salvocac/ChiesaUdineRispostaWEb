@@ -568,27 +568,7 @@ struct ContentView: View {
                         .padding(.horizontal)
                     }
                     
-                    Button {
-                        
-                        showYoutube = true
-                        
-                    } label: {
-                        
-                        HStack {
-                            
-                            Image(systemName:
-                                    "play.rectangle.fill")
-                            
-                            Text("Canale YouTube")
-                                .fontWeight(.bold)
-                        }
-                        .foregroundColor(.white)
-                        .padding()
-                        .frame(maxWidth: .infinity)
-                        .background(Color.red)
-                        .cornerRadius(20)
-                        .padding(.horizontal)
-                    }
+                 
                     Button {
 
                         if let url = URL(
@@ -613,51 +593,42 @@ struct ContentView: View {
                         .cornerRadius(20)
                         .padding(.horizontal)
                     }
-                    Button {
+                    HStack(spacing: 35) {
 
-                        if let url = URL(
-                            string: "https://www.instagram.com/chiesaevangelicadiudine/"
-                        ) {
-                            UIApplication.shared.open(url)
+                        Button {
+                            if let url = URL(string: "https://www.youtube.com/channel/UCqtwkH2xz1fFoTObbDXcpOw") {
+                                UIApplication.shared.open(url)
+                            }
+                        } label: {
+                            Image("youtube")
+                                .resizable()
+                                .scaledToFit()
+                                .frame(width: 80, height: 80)
                         }
 
-                    } label: {
-
-                        HStack {
-
-                            Image(systemName: "camera.fill")
-
-                            Text("Instagram")
-                                .fontWeight(.bold)
+                        Button {
+                            if let url = URL(string: "https://www.instagram.com/chiesaevangelicadiudine/") {
+                                UIApplication.shared.open(url)
+                            }
+                        } label: {
+                            Image("instagram")
+                                .resizable()
+                                .scaledToFit()
+                                .frame(width: 80, height: 80)
                         }
-                        .foregroundColor(.white)
-                        .padding()
-                        .frame(maxWidth: .infinity)
-                        .background(Color.purple)
-                        .cornerRadius(20)
-                        .padding(.horizontal)
+
+                        Button {
+                            if let url = URL(string: "https://www.facebook.com/share/1HxDBZvDhC/?mibextid=wwXIfr") {
+                                UIApplication.shared.open(url)
+                            }
+                        } label: {
+                            Image("facebook")
+                                .resizable()
+                                .scaledToFit()
+                                .frame(width: 80, height: 80)
+                        }
                     }
-                    Button {
-
-                        if let url = URL(
-                            string: "https://www.facebook.com/share/1HxDBZvDhC/?mibextid=wwXIfr"
-                        ) {
-                            UIApplication.shared.open(url)
-                        }
-
-                    } label: {
-                        HStack {
-                            Image(systemName: "person.2.fill")
-                            Text("Facebook")
-                                .fontWeight(.bold)
-                        }
-                        .foregroundColor(.white)
-                        .padding()
-                        .frame(maxWidth: .infinity)
-                        .background(Color.blue)
-                        .cornerRadius(20)
-                        .padding(.horizontal)
-                    }
+                    .padding(.vertical, 10)
                     Spacer()
                     Button {
 
