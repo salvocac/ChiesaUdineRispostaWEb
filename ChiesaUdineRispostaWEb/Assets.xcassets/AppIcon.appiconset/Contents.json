@@ -1,7 +1,7 @@
 {
   "images" : [
     {
-      "filename" : "E78A6A41-C520-46DC-958B-90BCF92B919C..png",
+      "filename" : "logonewchiesa.png",
       "idiom" : "universal",
       "platform" : "ios",
       "size" : "1024x1024"
@@ -13,6 +13,7 @@
           "value" : "dark"
         }
       ],
+      "filename" : "logonewchiesa 1.png",
       "idiom" : "universal",
       "platform" : "ios",
       "size" : "1024x1024"
@@ -24,6 +25,7 @@
           "value" : "tinted"
         }
       ],
+      "filename" : "logonewchiesa 2.png",
       "idiom" : "universal",
       "platform" : "ios",
       "size" : "1024x1024"
