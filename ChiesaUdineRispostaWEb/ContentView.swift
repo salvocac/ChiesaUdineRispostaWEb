@@ -425,12 +425,26 @@ struct BibleView: View {
                         ) { verse in
                             HStack(alignment: .top, spacing: 12) {
 
-                                Text(
-                                    searchText.isEmpty
-                                    ? "\(verse.verse)"
-                                    : "\(verse.book_name) \(verse.chapter):\(verse.verse)"
-                                )                                    .foregroundColor(.blue)
-                                    .frame(width: 30)
+                                if searchText.isEmpty {
+
+                                    Text("\(verse.verse)")
+                                        .foregroundColor(.blue)
+                                        .frame(width: 30)
+
+                                } else {
+
+                                    VStack(alignment: .leading, spacing: 2) {
+
+                                        Text(verse.book_name)
+                                            .font(.caption)
+                                            .fontWeight(.bold)
+
+                                        Text("\(verse.chapter):\(verse.verse)")
+                                            .font(.caption2)
+                                    }
+                                    .foregroundColor(.blue)
+                                    .frame(width: 90, alignment: .leading)
+                                }
 
                                 Text(verse.text)
                                     .font(.system(size: 18))
