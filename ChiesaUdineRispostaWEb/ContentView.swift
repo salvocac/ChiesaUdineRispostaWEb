@@ -106,6 +106,7 @@ struct BibleView: View {
     @State private var startVerse = 1
     @State private var endVerse = 1
     @State private var copied = false
+    @State private var searchText = ""
     @State private var verses: [BibleVerse] = []
     
     // Added properties for audio playback and speech synthesis
@@ -113,7 +114,6 @@ struct BibleView: View {
     @State private var isPlayingMusic = false
     let speechSynthesizer = AVSpeechSynthesizer()
 
-    
     var books: [String] {
 
         let orderedBooks = Dictionary(
@@ -148,6 +148,17 @@ struct BibleView: View {
         let numbers = Set(filtered.map { $0.verse })
 
         return numbers.sorted()
+    }
+
+    var searchResults: [BibleVerse] {
+
+        if searchText.isEmpty {
+            return []
+        }
+
+        return verses.filter {
+            $0.text.localizedCaseInsensitiveContains(searchText)
+        }
     }
 
     var filteredVerses: [BibleVerse] {
@@ -228,11 +239,25 @@ struct BibleView: View {
                 .padding(.bottom, 4)
                 
                 VStack(spacing: 2) {
-                    
+
+                    HStack {
+
+                        Image(systemName: "magnifyingglass")
+
+                        TextField(
+                            "Cerca una parola nella Bibbia...",
+                            text: $searchText
+                        )
+                    }
+                    .padding()
+                    .background(Color.gray.opacity(0.1))
+                    .cornerRadius(12)
+                    .padding(.horizontal)
+
                     Picker("Libro", selection: $selectedBook) {
-                        
+
                         ForEach(books, id: \.self) { book in
-                            
+
                             Text(book)
                         }
                     }
@@ -242,7 +267,7 @@ struct BibleView: View {
                     .background(Color.gray.opacity(0.1))
                     .cornerRadius(10)
                     .padding(.horizontal)
-                    
+
                     HStack(spacing: 8) {
 
                         VStack {
@@ -395,12 +420,16 @@ struct BibleView: View {
                 ScrollView {
                     LazyVStack(alignment: .leading, spacing: 12) {
 
-                        ForEach(filteredVerses) { verse in
-
+                        ForEach(
+                            searchText.isEmpty ? filteredVerses : searchResults
+                        ) { verse in
                             HStack(alignment: .top, spacing: 12) {
 
-                                Text("\(verse.verse)")
-                                    .foregroundColor(.blue)
+                                Text(
+                                    searchText.isEmpty
+                                    ? "\(verse.verse)"
+                                    : "\(verse.book_name) \(verse.chapter):\(verse.verse)"
+                                )                                    .foregroundColor(.blue)
                                     .frame(width: 30)
 
                                 Text(verse.text)
