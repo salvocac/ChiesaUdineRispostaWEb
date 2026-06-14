@@ -113,15 +113,19 @@ struct BibleView: View {
     @State private var isPlayingMusic = false
     let speechSynthesizer = AVSpeechSynthesizer()
 
-    let books = [
-        "Genesi","Esodo","Levitico","Numeri","Deuteronomio",
-        "Giosuè","Giudici","Rut","1 Samuele","2 Samuele",
-        "1 Re","2 Re","Salmi","Proverbi","Isaia",
-        "Matteo","Marco","Luca","Giovanni","Romani",
-        "1 Corinzi","2 Corinzi","Galati","Efesini",
-        "Filippesi","Colossesi","Apocalisse"
-    ]
     
+    var books: [String] {
+
+        let orderedBooks = Dictionary(
+            grouping: verses,
+            by: { $0.book }
+        )
+
+        return orderedBooks
+            .sorted { $0.key < $1.key }
+            .compactMap { $0.value.first?.book_name }
+    }
+
     var chapters: [Int] {
 
         let filtered = verses.filter {
@@ -132,8 +136,7 @@ struct BibleView: View {
 
         return numbers.sorted()
     }
-
-    var verseNumbers: [Int] {
+        var verseNumbers: [Int] {
 
         let filtered = verses.filter {
 
@@ -699,3 +702,4 @@ struct ContentView: View {
            }
             }
     }
+
