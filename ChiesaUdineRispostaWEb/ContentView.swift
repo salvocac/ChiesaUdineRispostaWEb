@@ -152,29 +152,29 @@ struct BibleView: View {
     }
     
     var searchResults: [BibleVerse] {
-
+        
         if searchText.isEmpty {
             return []
         }
-
+        
         return verses.filter {
             $0.text.localizedCaseInsensitiveContains(searchText)
         }
     }
-
+    
     var displayedVerses: [BibleVerse] {
-
+        
         if searchText.isEmpty {
             return filteredVerses
         } else {
             return searchResults
         }
     }
-
+    
     var filteredVerses: [BibleVerse] {
-
+        
         verses.filter {
-
+            
             $0.book_name == selectedBook
             &&
             $0.chapter == selectedChapter
@@ -185,9 +185,9 @@ struct BibleView: View {
         }
         .sorted { $0.verse < $1.verse }
     }
-
+    
     var chapterText: String {
-
+        
         filteredVerses
             .map {
                 $0.text
@@ -201,6 +201,15 @@ struct BibleView: View {
         
         \(chapterText)
         """
+    }
+    var searchShareText: String {
+        
+        searchResults.prefix(50).map {
+            
+            "\($0.book_name) \($0.chapter):\($0.verse)\n\($0.text)"
+            
+        }
+        .joined(separator: "\n\n")
     }
     var copyText: String {
         
@@ -241,21 +250,26 @@ struct BibleView: View {
         NavigationStack {
             
             VStack {
-                
-                
-                // Added HStack with music play/pause, share, and speak with Luca buttons
+
                 HStack(spacing: 16) {
                     Button(action: {
-                        if isPlayingMusic { pauseMusic() } else { playRelaxMusic() }
+                        if isPlayingMusic {
+                            pauseMusic()
+                        } else {
+                            playRelaxMusic()
+                        }
                     }) {
-                        Image(systemName: isPlayingMusic ? "pause.circle.fill" : "play.circle.fill")
-                            .font(.largeTitle)
+                        Image(
+                            systemName: isPlayingMusic
+                            ? "pause.circle.fill"
+                            : "play.circle.fill"
+                        )
+                        .font(.largeTitle)
                     }
-                    
                 }
                 .padding(.horizontal)
                 .padding(.bottom, 4)
-                
+
                 VStack(spacing: 2) {
                     
                     HStack {
@@ -313,10 +327,9 @@ struct BibleView: View {
                         VStack {
                             Text("A")
                                 .font(.caption)
-                            
                             Picker("", selection: $endVerse) {
                                 ForEach(verseNumbers, id: \.self) { verse in
-                                    Text("\(verse)")
+                                    Text("\(verse)").tag(verse)
                                 }
                             }
                         }
@@ -325,173 +338,168 @@ struct BibleView: View {
                     .padding()
                     .background(Color.gray.opacity(0.1))
                     .cornerRadius(15)
-                    .padding(.horizontal)                    .pickerStyle(.menu)
-                    .padding()
-                    .background(Color.gray.opacity(0.1))
-                    .cornerRadius(15)
                     .padding(.horizontal)
-                }
-                
-                HStack(spacing: 30) {
-                    Button {
-                        let intro = "\(selectedBook), capitolo \(selectedChapter), versetti da \(startVerse) a \(endVerse)."
-                        
-                        audioManager.speak(
-                            text: intro + " " + chapterText,
-                            voiceName: "com.apple.ttsbundle.siri_male_it-IT_compact"
-                        )
-                    } label: {
-                        
-                        VStack {
-                            
-                            Image(systemName:
-                                    "play.circle.fill")
-                            .font(.system(size: 30))
-                            .foregroundColor(.green)
-                            
-                            Text("Ascolta")
-                                .font(.caption)
-                        }
-                    }
                     
-                    Button {
-                        
-                        if audioManager.isPaused {
+                    HStack(spacing: 30) {
+                        Button {
+                            let intro = "\(selectedBook), capitolo \(selectedChapter), versetti da \(startVerse) a \(endVerse)."
                             
-                            audioManager.resume()
-                            
-                        } else {
-                            
-                            audioManager.pause()
-                        }
-                        
-                    } label: {
-                        
-                        VStack {
-                            
-                            Image(
-                                systemName:
-                                    audioManager.isPaused
-                                ? "play.circle"
-                                : "pause.circle.fill"
+                            audioManager.speak(
+                                text: intro + " " + chapterText,
+                                voiceName: "com.apple.ttsbundle.siri_male_it-IT_compact"
                             )
-                            .font(.system(size: 30))
-                            .foregroundColor(.orange)
+                        } label: {
                             
-                            Text(
-                                audioManager.isPaused
-                                ? "Riprendi"
-                                : "Pausa"
-                            )
-                            .font(.caption)
-                        }
-                    }
-                    
-                    Button {
-                        
-                        audioManager.stop()
-                        
-                    } label: {
-                        
-                        VStack {
-                            
-                            Image(systemName: "stop.circle.fill")
+                            VStack {
+                                
+                                Image(systemName:
+                                        "play.circle.fill")
                                 .font(.system(size: 30))
-                                .foregroundColor(.red)
-                            
-                            Text("Stop")
-                                .font(.caption)
-                        }
-                    }
-                    
-                    Button {
-                        
-                        UIPasteboard.general.string = copyText
-                        
-                        copied = true
-                        
-                        DispatchQueue.main.asyncAfter(deadline: .now() + 2) {
-                            copied = false
-                        }
-                        
-                    } label: {
-                        
-                        VStack {
-                            
-                            Image(systemName: "doc.on.doc.fill")
-                                .font(.system(size: 30))
-                                .foregroundColor(.blue)
-                            
-                            Text("Copia")
-                                .font(.caption)
-                        }
-                    }
-                    Button {
-                        
-                        showShareSheet = true
-                        
-                    } label: {
-                        
-                        VStack {
-                            
-                            Image(systemName: "square.and.arrow.up.fill")
-                                .font(.system(size: 30))
-                                .foregroundColor(.blue)
-                            
-                            Text("Condividi")
-                                .font(.caption)
-                        }
-                    }
-                }
-                .padding(.vertical)
-                
-                if copied {
-                    
-                    Text("Testo copiato negli appunti")
-                        .font(.caption)
-                        .foregroundColor(.green)
-                }
-                ScrollView {
-
-                    LazyVStack(alignment: .leading, spacing: 12) {
-
-                        ForEach(displayedVerses) { verse in
-
-                            HStack(alignment: .top, spacing: 12) {
-
-                                if searchText.isEmpty {
-
-                                    Text("\(verse.verse)")
-                                        .foregroundColor(.blue)
-                                        .frame(width: 30)
-
-                                } else {
-
-                                    VStack(alignment: .leading, spacing: 2) {
-
-                                        Text(verse.book_name)
-                                            .font(.caption)
-                                            .fontWeight(.bold)
-
-                                        Text("\(verse.chapter):\(verse.verse)")
-                                            .font(.caption2)
-                                    }
-                                    .foregroundColor(.blue)
-                                    .frame(width: 90, alignment: .leading)
-                                }
-
-                                Text(verse.text)
-                                    .font(.system(size: 18))
-                                    .frame(maxWidth: .infinity, alignment: .leading)
-                                    .textSelection(.enabled)
+                                .foregroundColor(.green)
+                                
+                                Text("Ascolta")
+                                    .font(.caption)
                             }
-
-                            Divider()
+                        }
+                        
+                        Button {
+                            
+                            if audioManager.isPaused {
+                                
+                                audioManager.resume()
+                                
+                            } else {
+                                
+                                audioManager.pause()
+                            }
+                            
+                        } label: {
+                            
+                            VStack {
+                                
+                                Image(
+                                    systemName:
+                                        audioManager.isPaused
+                                    ? "play.circle"
+                                    : "pause.circle.fill"
+                                )
+                                .font(.system(size: 30))
+                                .foregroundColor(.orange)
+                                
+                                Text(
+                                    audioManager.isPaused
+                                    ? "Riprendi"
+                                    : "Pausa"
+                                )
+                                .font(.caption)
+                            }
+                        }
+                        
+                        Button {
+                            
+                            audioManager.stop()
+                            
+                        } label: {
+                            
+                            VStack {
+                                
+                                Image(systemName: "stop.circle.fill")
+                                    .font(.system(size: 30))
+                                    .foregroundColor(.red)
+                                
+                                Text("Stop")
+                                    .font(.caption)
+                            }
+                        }
+                        
+                        Button {
+                            
+                            UIPasteboard.general.string = copyText
+                            
+                            copied = true
+                            
+                            DispatchQueue.main.asyncAfter(deadline: .now() + 2) {
+                                copied = false
+                            }
+                            
+                        } label: {
+                            
+                            VStack {
+                                
+                                Image(systemName: "doc.on.doc.fill")
+                                    .font(.system(size: 30))
+                                    .foregroundColor(.blue)
+                                
+                                Text("Copia")
+                                    .font(.caption)
+                            }
+                        }
+                        Button {
+                            
+                            showShareSheet = true
+                            
+                        } label: {
+                            
+                            VStack {
+                                
+                                Image(systemName: "square.and.arrow.up.fill")
+                                    .font(.system(size: 30))
+                                    .foregroundColor(.blue)
+                                
+                                Text("Condividi")
+                                    .font(.caption)
+                            }
                         }
                     }
-                    .padding()
-                }
-                .frame(maxHeight: .infinity)
+                    .padding(.vertical)
+                    
+                    if copied {
+                        
+                        Text("Testo copiato negli appunti")
+                            .font(.caption)
+                            .foregroundColor(.green)
+                    }
+                    ScrollView {
+                        
+                        LazyVStack(alignment: .leading, spacing: 12) {
+                            
+                            ForEach(displayedVerses) { verse in
+                                
+                                HStack(alignment: .top, spacing: 12) {
+                                    
+                                    if searchText.isEmpty {
+                                        
+                                        Text("\(verse.verse)")
+                                            .foregroundColor(.blue)
+                                            .frame(width: 30)
+                                        
+                                    } else {
+                                        
+                                        VStack(alignment: .leading, spacing: 2) {
+                                            
+                                            Text(verse.book_name)
+                                                .font(.caption)
+                                                .fontWeight(.bold)
+                                            
+                                            Text("\(verse.chapter):\(verse.verse)")
+                                                .font(.caption2)
+                                        }
+                                        .foregroundColor(.blue)
+                                        .frame(width: 90, alignment: .leading)
+                                    }
+                                    
+                                    Text(verse.text)
+                                        .font(.system(size: 18))
+                                        .frame(maxWidth: .infinity, alignment: .leading)
+                                        .textSelection(.enabled)
+                                }
+                                
+                                Divider()
+                            }
+                        }
+                        .padding()
+                    }
+                    .frame(maxHeight: .infinity)
                 }
                 
                 .navigationBarTitleDisplayMode(.inline)
@@ -532,258 +540,240 @@ struct BibleView: View {
                 }
                 
                 .sheet(isPresented: $showShareSheet) {
-                    
                     ShareSheet(
-                        items: [shareText]
+                        items: [
+                            searchText.isEmpty ? shareText : searchShareText
+                        ]
                     )
                 }
-            }
-        }
-        
-        func loadBible() {
-            
-            guard let url = Bundle.main.url(
-                forResource: "diodati",
-                withExtension: "json"
-            ) else {
-                
-                print("❌ File JSON non trovato")
-                return
-            }
-            
-            do {
-                
-                let data = try Data(contentsOf: url)
-                
-                let bibleData = try JSONDecoder()
-                    .decode(BibleData.self, from: data)
-                
-                verses = bibleData.verses
-                
-                if let first = verseNumbers.first {
-                    
-                    startVerse = first
-                    endVerse = first
-                }
-                
-            } catch {
-                
-                print(error)
             }
         }
     }
     
-    struct ContentView: View {
-        
-        @State private var showBible = false
-        @State private var showAudio = false
-        @State private var showAbout = false
-        
-        @State private var showWebsite = false
-        @State private var showYoutube = false
-        @State private var showDailyVerse = false
-        @State private var showAudioSettings = false
-        var body: some View {
-            
-            NavigationStack {
-                
-                ZStack {
-                    LinearGradient(
-                        colors: [
-                            Color.white,
-                            Color.blue.opacity(0.08)
-                        ],
-                        startPoint: .top,
-                        endPoint: .bottom
-                    )
-                    .ignoresSafeArea()
-                    
-                    VStack(spacing: 8) {
-                        Image("logo")
-                            .resizable()
-                            .scaledToFit()
-                            .frame(maxWidth: 180)
-                            .padding(.top, 10)
-                        Button {
-                            showDailyVerse = true
-                        } label: {
-                            HStack {
-                                Image(systemName: "quote.bubble.fill")
-                                Text("Versetto del giorno")
-                                    .fontWeight(.bold)
-                            }
-                            .foregroundColor(.white)
-                            .padding()
-                            .frame(maxWidth: .infinity)
-                            .background(Color.blue)
-                            .cornerRadius(20)
-                            .padding(.horizontal)
+    private func loadBible() {
+        guard let url = Bundle.main.url(
+            forResource: "diodati",
+            withExtension: "json"
+        ) else {
+            print("❌ File JSON non trovato")
+            return
+        }
+
+        do {
+            let data = try Data(contentsOf: url)
+            let bibleData = try JSONDecoder().decode(BibleData.self, from: data)
+            verses = bibleData.verses
+
+            if let first = verseNumbers.first {
+                startVerse = first
+                endVerse = first
+            }
+        } catch {
+            print(error)
+        }
+    }
+} // End of BibleView
+
+struct ContentView: View {
+
+    @State private var showBible = false
+    @State private var showAudio = false
+    @State private var showAbout = false
+
+    @State private var showWebsite = false
+    @State private var showYoutube = false
+    @State private var showDailyVerse = false
+    @State private var showAudioSettings = false
+
+    var body: some View {
+
+        NavigationStack {
+
+            ZStack {
+
+                LinearGradient(
+                    colors: [
+                        Color.white,
+                        Color.blue.opacity(0.08)
+                    ],
+                    startPoint: .top,
+                    endPoint: .bottom
+                )
+                .ignoresSafeArea()
+
+                VStack(spacing: 8) {
+
+                    Image("logo")
+                        .resizable()
+                        .scaledToFit()
+                        .frame(maxWidth: 180)
+                        .padding(.top, 10)
+
+                    Button {
+                        showDailyVerse = true
+                    } label: {
+                        HStack {
+                            Image(systemName: "quote.bubble.fill")
+                            Text("Versetto del giorno")
+                                .fontWeight(.bold)
                         }
-                        
-                        Button {
-                            
-                            showBible = true
-                            
-                        } label: {
-                            
-                            HStack {
-                                
-                                Image(systemName: "book.fill")
-                                
-                                Text("Apri Bibbia")
-                                    .fontWeight(.bold)
-                            }
-                            .foregroundColor(.black)
-                            .padding()
-                            .frame(maxWidth: .infinity)
-                            .background(Color.blue)
-                            .cornerRadius(20)
-                            .padding(.horizontal)
+                        .foregroundColor(.white)
+                        .padding()
+                        .frame(maxWidth: .infinity)
+                        .background(Color.blue)
+                        .cornerRadius(20)
+                        .padding(.horizontal)
+                    }
+
+                    Button {
+                        showBible = true
+                    } label: {
+                        HStack {
+                            Image(systemName: "book.fill")
+                            Text("Apri Bibbia")
+                                .fontWeight(.bold)
                         }
-                        
-                        Button {
-                            
-                            showWebsite = true
-                            
-                        } label: {
-                            
-                            HStack {
-                                
-                                Image(systemName: "globe")
-                                
-                                Text("Sito Web")
-                                    .fontWeight(.bold)
-                            }
-                            .foregroundColor(.white)
-                            .padding()
-                            .frame(maxWidth: .infinity)
-                            .background(Color.green)
-                            .cornerRadius(20)
-                            .padding(.horizontal)
+                        .foregroundColor(.black)
+                        .padding()
+                        .frame(maxWidth: .infinity)
+                        .background(Color.blue)
+                        .cornerRadius(20)
+                        .padding(.horizontal)
+                    }
+
+                    Button {
+                        showWebsite = true
+                    } label: {
+                        HStack {
+                            Image(systemName: "globe")
+                            Text("Sito Web")
+                                .fontWeight(.bold)
                         }
-                        
-                        
+                        .foregroundColor(.white)
+                        .padding()
+                        .frame(maxWidth: .infinity)
+                        .background(Color.green)
+                        .cornerRadius(20)
+                        .padding(.horizontal)
+                    }
+
+                    Button {
+
+                        if let url = URL(
+                            string: "https://maps.google.com/?q=Via+Croazia+14+33100+Udine"
+                        ) {
+                            UIApplication.shared.open(url)
+                        }
+
+                    } label: {
+
+                        HStack {
+                            Image(systemName: "map.fill")
+
+                            Text("Dove siamo")
+                                .fontWeight(.bold)
+                        }
+                        .foregroundColor(.white)
+                        .padding()
+                        .frame(maxWidth: .infinity)
+                        .background(Color.teal)
+                        .cornerRadius(20)
+                        .padding(.horizontal)
+                    }
+
+                    HStack(spacing: 35) {
+
                         Button {
-                            
                             if let url = URL(
-                                string: "https://maps.google.com/?q=Via+Croazia+14+33100+Udine"
+                                string: "https://www.youtube.com/channel/UCqtwkH2xz1fFoTObbDXcpOw"
                             ) {
                                 UIApplication.shared.open(url)
                             }
-                            
                         } label: {
-                            
-                            HStack {
-                                
-                                Image(systemName: "map.fill")
-                                
-                                Text("Dove siamo")
-                                    .fontWeight(.bold)
-                            }
-                            .foregroundColor(.white)
-                            .padding()
-                            .frame(maxWidth: .infinity)
-                            .background(Color.teal)
-                            .cornerRadius(20)
-                            .padding(.horizontal)
+                            Image("youtube")
+                                .resizable()
+                                .scaledToFit()
+                                .frame(width: 80, height: 80)
                         }
-                        HStack(spacing: 35) {
-                            
-                            Button {
-                                if let url = URL(string: "https://www.youtube.com/channel/UCqtwkH2xz1fFoTObbDXcpOw") {
-                                    UIApplication.shared.open(url)
-                                }
-                            } label: {
-                                Image("youtube")
-                                    .resizable()
-                                    .scaledToFit()
-                                    .frame(width: 80, height: 80)
-                            }
-                            
-                            Button {
-                                if let url = URL(string: "https://www.instagram.com/chiesaevangelicadiudine/") {
-                                    UIApplication.shared.open(url)
-                                }
-                            } label: {
-                                Image("instagram")
-                                    .resizable()
-                                    .scaledToFit()
-                                    .frame(width: 80, height: 80)
-                            }
-                            
-                            Button {
-                                if let url = URL(string: "https://www.facebook.com/share/1HxDBZvDhC/?mibextid=wwXIfr") {
-                                    UIApplication.shared.open(url)
-                                }
-                            } label: {
-                                Image("facebook")
-                                    .resizable()
-                                    .scaledToFit()
-                                    .frame(width: 80, height: 80)
-                            }
-                        }
-                        .padding(.vertical, 10)
-                        Spacer()
+
                         Button {
-                            
-                            showAudioSettings = true
-                            
-                        } label: {
-                            
-                            HStack {
-                                
-                                Image(systemName: "speaker.wave.3.fill")
-                                
-                                Text("Impostazioni Audio")
-                                    .fontWeight(.bold)
+                            if let url = URL(
+                                string: "https://www.instagram.com/chiesaevangelicadiudine/"
+                            ) {
+                                UIApplication.shared.open(url)
                             }
-                            .foregroundColor(.white)
-                            .padding()
-                            .frame(maxWidth: .infinity)
-                            .background(Color.orange)
-                            .cornerRadius(20)
-                            .padding(.horizontal)
+                        } label: {
+                            Image("instagram")
+                                .resizable()
+                                .scaledToFit()
+                                .frame(width: 80, height: 80)
                         }
-                        Text("© CCE Friulana di Udine")
-                            .font(.footnote)
-                            .foregroundColor(.gray)
-                            .padding(.bottom)
+
+                        Button {
+                            if let url = URL(
+                                string: "https://www.facebook.com/share/1HxDBZvDhC/?mibextid=wwXIfr"
+                            ) {
+                                UIApplication.shared.open(url)
+                            }
+                        } label: {
+                            Image("facebook")
+                                .resizable()
+                                .scaledToFit()
+                                .frame(width: 80, height: 80)
+                        }
                     }
+                    .padding(.vertical, 10)
+
+                    Spacer()
+
+                    Button {
+                        showAudioSettings = true
+                    } label: {
+                        HStack {
+                            Image(systemName: "speaker.wave.3.fill")
+
+                            Text("Impostazioni Audio")
+                                .fontWeight(.bold)
+                        }
+                        .foregroundColor(.white)
+                        .padding()
+                        .frame(maxWidth: .infinity)
+                        .background(Color.orange)
+                        .cornerRadius(20)
+                        .padding(.horizontal)
+                    }
+
+                    Text("© CCE Friulana di Udine")
+                        .font(.footnote)
+                        .foregroundColor(.gray)
+                        .padding(.bottom)
                 }
-                .fullScreenCover(isPresented: $showDailyVerse) {
-                    DailyVerseView()
-                }
-                .fullScreenCover(isPresented: $showBible) {
-                    
-                    BibleView()
-                }
-                
-                .fullScreenCover(isPresented: $showWebsite) {
-                    
-                    WebsiteView(
-                        url: URL(
-                            string:
-                                "https://www.chiesacristianaudine.it"
-                        )!,
-                        title: "Sito Web"
-                    )
-                }
-                
-                .fullScreenCover(isPresented: $showYoutube) {
-                    
-                    WebsiteView(
-                        url: URL(
-                            string: "https://www.youtube.com/channel/UCqtwkH2xz1fFoTObbDXcpOw"
-                        )!,
-                        title: "YouTube"
-                    )
-                }
-                
-                .sheet(isPresented: $showAudioSettings) {
-                    AudioSettingsView()
-                }
-                
+            }
+            .fullScreenCover(isPresented: $showDailyVerse) {
+                DailyVerseView()
+            }
+            .fullScreenCover(isPresented: $showBible) {
+                BibleView()
+            }
+            .fullScreenCover(isPresented: $showWebsite) {
+                WebsiteView(
+                    url: URL(
+                        string: "https://www.chiesacristianaudine.it"
+                    )!,
+                    title: "Sito Web"
+                )
+            }
+            .fullScreenCover(isPresented: $showYoutube) {
+                WebsiteView(
+                    url: URL(
+                        string: "https://www.youtube.com/channel/UCqtwkH2xz1fFoTObbDXcpOw"
+                    )!,
+                    title: "YouTube"
+                )
+            }
+            .sheet(isPresented: $showAudioSettings) {
+                AudioSettingsView()
             }
         }
     }
-
+}
