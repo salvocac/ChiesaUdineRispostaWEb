@@ -92,64 +92,65 @@ struct WebsiteView: View {
 }
 
 struct BibleView: View {
-
+    
     @Environment(\.dismiss) var dismiss
     @Environment(\.verticalSizeClass) var verticalSizeClass
     @StateObject
     private var audioManager =
     BibleAudioManager()
     
-   
+    
     @State private var selectedBook = "Genesi"
     @State private var selectedChapter = 1
-
+    
     @State private var startVerse = 1
     @State private var endVerse = 1
     @State private var copied = false
     @State private var searchText = ""
+    @State private var showShareSheet = false
     @State private var verses: [BibleVerse] = []
     
     // Added properties for audio playback and speech synthesis
     @State private var audioPlayer: AVAudioPlayer?
     @State private var isPlayingMusic = false
     let speechSynthesizer = AVSpeechSynthesizer()
-
+    
     var books: [String] {
-
+        
         let orderedBooks = Dictionary(
             grouping: verses,
             by: { $0.book }
         )
-
+        
         return orderedBooks
             .sorted { $0.key < $1.key }
             .compactMap { $0.value.first?.book_name }
     }
-
+    
     var chapters: [Int] {
-
+        
         let filtered = verses.filter {
             $0.book_name == selectedBook
         }
-
+        
         let numbers = Set(filtered.map { $0.chapter })
-
+        
         return numbers.sorted()
     }
-        var verseNumbers: [Int] {
-
+    var verseNumbers: [Int] {
+        
         let filtered = verses.filter {
-
+            
             $0.book_name == selectedBook
             &&
             $0.chapter == selectedChapter
         }
-
+        
         let numbers = Set(filtered.map { $0.verse })
-
+        
         return numbers.sorted()
     }
-
+    
     var searchResults: [BibleVerse] {
 
         if searchText.isEmpty {
@@ -158,6 +159,15 @@ struct BibleView: View {
 
         return verses.filter {
             $0.text.localizedCaseInsensitiveContains(searchText)
+        }
+    }
+
+    var displayedVerses: [BibleVerse] {
+
+        if searchText.isEmpty {
+            return filteredVerses
+        } else {
+            return searchResults
         }
     }
 
@@ -184,11 +194,19 @@ struct BibleView: View {
             }
             .joined(separator: " ")
     }
-    var copyText: String {
-
+    var shareText: String {
+        
         """
         \(selectedBook) \(selectedChapter):\(startVerse)-\(endVerse)
-
+        
+        \(chapterText)
+        """
+    }
+    var copyText: String {
+        
+        """
+        \(selectedBook) \(selectedChapter):\(startVerse)-\(endVerse)
+        
         \(chapterText)
         """
     }
@@ -219,12 +237,12 @@ struct BibleView: View {
     }
     
     var body: some View {
-
+        
         NavigationStack {
-
+            
             VStack {
                 
-           
+                
                 // Added HStack with music play/pause, share, and speak with Luca buttons
                 HStack(spacing: 16) {
                     Button(action: {
@@ -233,17 +251,17 @@ struct BibleView: View {
                         Image(systemName: isPlayingMusic ? "pause.circle.fill" : "play.circle.fill")
                             .font(.largeTitle)
                     }
-
-                  }
+                    
+                }
                 .padding(.horizontal)
                 .padding(.bottom, 4)
                 
                 VStack(spacing: 2) {
-
+                    
                     HStack {
-
+                        
                         Image(systemName: "magnifyingglass")
-
+                        
                         TextField(
                             "Cerca una parola nella Bibbia...",
                             text: $searchText
@@ -253,11 +271,11 @@ struct BibleView: View {
                     .background(Color.gray.opacity(0.1))
                     .cornerRadius(12)
                     .padding(.horizontal)
-
+                    
                     Picker("Libro", selection: $selectedBook) {
-
+                        
                         ForEach(books, id: \.self) { book in
-
+                            
                             Text(book)
                         }
                     }
@@ -267,35 +285,35 @@ struct BibleView: View {
                     .background(Color.gray.opacity(0.1))
                     .cornerRadius(10)
                     .padding(.horizontal)
-
+                    
                     HStack(spacing: 8) {
-
+                        
                         VStack {
                             Text("Cap.")
                                 .font(.caption)
-
+                            
                             Picker("", selection: $selectedChapter) {
                                 ForEach(chapters, id: \.self) { chapter in
                                     Text("\(chapter)")
                                 }
                             }
                         }
-
+                        
                         VStack {
                             Text("Da")
                                 .font(.caption)
-
+                            
                             Picker("", selection: $startVerse) {
                                 ForEach(verseNumbers, id: \.self) { verse in
                                     Text("\(verse)")
                                 }
                             }
                         }
-
+                        
                         VStack {
                             Text("A")
                                 .font(.caption)
-
+                            
                             Picker("", selection: $endVerse) {
                                 ForEach(verseNumbers, id: \.self) { verse in
                                     Text("\(verse)")
@@ -408,6 +426,22 @@ struct BibleView: View {
                                 .font(.caption)
                         }
                     }
+                    Button {
+                        
+                        showShareSheet = true
+                        
+                    } label: {
+                        
+                        VStack {
+                            
+                            Image(systemName: "square.and.arrow.up.fill")
+                                .font(.system(size: 30))
+                                .foregroundColor(.blue)
+                            
+                            Text("Condividi")
+                                .font(.caption)
+                        }
+                    }
                 }
                 .padding(.vertical)
                 
@@ -418,11 +452,11 @@ struct BibleView: View {
                         .foregroundColor(.green)
                 }
                 ScrollView {
+
                     LazyVStack(alignment: .leading, spacing: 12) {
 
-                        ForEach(
-                            searchText.isEmpty ? filteredVerses : searchResults
-                        ) { verse in
+                        ForEach(displayedVerses) { verse in
+
                             HStack(alignment: .top, spacing: 12) {
 
                                 if searchText.isEmpty {
@@ -458,291 +492,298 @@ struct BibleView: View {
                     .padding()
                 }
                 .frame(maxHeight: .infinity)
-            }
-
-            .navigationBarTitleDisplayMode(.inline)
-            .navigationTitle("Bibbia")
-            .toolbar {
-
-                ToolbarItem(placement: .topBarTrailing) {
-
-                    Button {
-
-                        audioManager.stop()
-
-                        dismiss()
-
-                    } label: {
-
-                        Image(systemName: "xmark")
-                            .fontWeight(.bold)
+                }
+                
+                .navigationBarTitleDisplayMode(.inline)
+                .navigationTitle("Bibbia")
+                .toolbar {
+                    
+                    ToolbarItem(placement: .topBarTrailing) {
+                        
+                        Button {
+                            
+                            audioManager.stop()
+                            
+                            dismiss()
+                            
+                        } label: {
+                            
+                            Image(systemName: "xmark")
+                                .fontWeight(.bold)
+                        }
                     }
                 }
+                
+                .onAppear {
+                    
+                    loadBible()
+                    
+                    print("BibleManager count =",
+                          BibleManager.shared.verses.count)
+                }
+                
+                .onChange(of: selectedChapter) {
+                    
+                    if let first = verseNumbers.first {
+                        
+                        startVerse = first
+                        endVerse = first
+                    }
+                }
+                
+                .sheet(isPresented: $showShareSheet) {
+                    
+                    ShareSheet(
+                        items: [shareText]
+                    )
+                }
             }
-
-            .onAppear {
-
-                loadBible()
-
-                print("BibleManager count =",
-                      BibleManager.shared.verses.count)
+        }
+        
+        func loadBible() {
+            
+            guard let url = Bundle.main.url(
+                forResource: "diodati",
+                withExtension: "json"
+            ) else {
+                
+                print("❌ File JSON non trovato")
+                return
             }
-
-            .onChange(of: selectedChapter) {
-
+            
+            do {
+                
+                let data = try Data(contentsOf: url)
+                
+                let bibleData = try JSONDecoder()
+                    .decode(BibleData.self, from: data)
+                
+                verses = bibleData.verses
+                
                 if let first = verseNumbers.first {
-
+                    
                     startVerse = first
                     endVerse = first
                 }
+                
+            } catch {
+                
+                print(error)
             }
         }
     }
-
-    func loadBible() {
-
-        guard let url = Bundle.main.url(
-            forResource: "diodati",
-            withExtension: "json"
-        ) else {
-
-            print("❌ File JSON non trovato")
-            return
-        }
-
-        do {
-
-            let data = try Data(contentsOf: url)
-
-            let bibleData = try JSONDecoder()
-                .decode(BibleData.self, from: data)
-
-            verses = bibleData.verses
-
-            if let first = verseNumbers.first {
-
-                startVerse = first
-                endVerse = first
-            }
-
-        } catch {
-
-            print(error)
-        }
-    }
-}
-
-struct ContentView: View {
     
-    @State private var showBible = false
-    @State private var showAudio = false
-    @State private var showAbout = false
-    
-    @State private var showWebsite = false
-    @State private var showYoutube = false
-    @State private var showDailyVerse = false
-    @State private var showAudioSettings = false
-    var body: some View {
+    struct ContentView: View {
         
-        NavigationStack {
+        @State private var showBible = false
+        @State private var showAudio = false
+        @State private var showAbout = false
+        
+        @State private var showWebsite = false
+        @State private var showYoutube = false
+        @State private var showDailyVerse = false
+        @State private var showAudioSettings = false
+        var body: some View {
             
-            ZStack {
-                LinearGradient(
-                    colors: [
-                        Color.white,
-                        Color.blue.opacity(0.08)
-                    ],
-                    startPoint: .top,
-                    endPoint: .bottom
-                )
-                .ignoresSafeArea()
-
-                VStack(spacing: 8) {
-                    Image("logo")
-                        .resizable()
-                        .scaledToFit()
-                        .frame(maxWidth: 180)
-                        .padding(.top, 10)
-                    Button {
-                        showDailyVerse = true
-                    } label: {
-                        HStack {
-                            Image(systemName: "quote.bubble.fill")
-                            Text("Versetto del giorno")
-                                .fontWeight(.bold)
-                        }
-                        .foregroundColor(.white)
-                        .padding()
-                        .frame(maxWidth: .infinity)
-                        .background(Color.blue)
-                        .cornerRadius(20)
-                        .padding(.horizontal)
-                    }
+            NavigationStack {
+                
+                ZStack {
+                    LinearGradient(
+                        colors: [
+                            Color.white,
+                            Color.blue.opacity(0.08)
+                        ],
+                        startPoint: .top,
+                        endPoint: .bottom
+                    )
+                    .ignoresSafeArea()
                     
-                    Button {
-                        
-                        showBible = true
-                        
-                    } label: {
-                        
-                        HStack {
-                            
-                            Image(systemName: "book.fill")
-                            
-                            Text("Apri Bibbia")
-                                .fontWeight(.bold)
-                        }
-                        .foregroundColor(.black)
-                        .padding()
-                        .frame(maxWidth: .infinity)
-                        .background(Color.blue)
-                        .cornerRadius(20)
-                        .padding(.horizontal)
-                    }
-                    
-                    Button {
-                        
-                        showWebsite = true
-                        
-                    } label: {
-                        
-                        HStack {
-                            
-                            Image(systemName: "globe")
-                            
-                            Text("Sito Web")
-                                .fontWeight(.bold)
-                        }
-                        .foregroundColor(.white)
-                        .padding()
-                        .frame(maxWidth: .infinity)
-                        .background(Color.green)
-                        .cornerRadius(20)
-                        .padding(.horizontal)
-                    }
-                    
-                 
-                    Button {
-
-                        if let url = URL(
-                            string: "https://maps.google.com/?q=Via+Croazia+14+33100+Udine"
-                        ) {
-                            UIApplication.shared.open(url)
-                        }
-
-                    } label: {
-
-                        HStack {
-
-                            Image(systemName: "map.fill")
-
-                            Text("Dove siamo")
-                                .fontWeight(.bold)
-                        }
-                        .foregroundColor(.white)
-                        .padding()
-                        .frame(maxWidth: .infinity)
-                        .background(Color.teal)
-                        .cornerRadius(20)
-                        .padding(.horizontal)
-                    }
-                    HStack(spacing: 35) {
-
+                    VStack(spacing: 8) {
+                        Image("logo")
+                            .resizable()
+                            .scaledToFit()
+                            .frame(maxWidth: 180)
+                            .padding(.top, 10)
                         Button {
-                            if let url = URL(string: "https://www.youtube.com/channel/UCqtwkH2xz1fFoTObbDXcpOw") {
+                            showDailyVerse = true
+                        } label: {
+                            HStack {
+                                Image(systemName: "quote.bubble.fill")
+                                Text("Versetto del giorno")
+                                    .fontWeight(.bold)
+                            }
+                            .foregroundColor(.white)
+                            .padding()
+                            .frame(maxWidth: .infinity)
+                            .background(Color.blue)
+                            .cornerRadius(20)
+                            .padding(.horizontal)
+                        }
+                        
+                        Button {
+                            
+                            showBible = true
+                            
+                        } label: {
+                            
+                            HStack {
+                                
+                                Image(systemName: "book.fill")
+                                
+                                Text("Apri Bibbia")
+                                    .fontWeight(.bold)
+                            }
+                            .foregroundColor(.black)
+                            .padding()
+                            .frame(maxWidth: .infinity)
+                            .background(Color.blue)
+                            .cornerRadius(20)
+                            .padding(.horizontal)
+                        }
+                        
+                        Button {
+                            
+                            showWebsite = true
+                            
+                        } label: {
+                            
+                            HStack {
+                                
+                                Image(systemName: "globe")
+                                
+                                Text("Sito Web")
+                                    .fontWeight(.bold)
+                            }
+                            .foregroundColor(.white)
+                            .padding()
+                            .frame(maxWidth: .infinity)
+                            .background(Color.green)
+                            .cornerRadius(20)
+                            .padding(.horizontal)
+                        }
+                        
+                        
+                        Button {
+                            
+                            if let url = URL(
+                                string: "https://maps.google.com/?q=Via+Croazia+14+33100+Udine"
+                            ) {
                                 UIApplication.shared.open(url)
                             }
+                            
                         } label: {
-                            Image("youtube")
-                                .resizable()
-                                .scaledToFit()
-                                .frame(width: 80, height: 80)
-                        }
-
-                        Button {
-                            if let url = URL(string: "https://www.instagram.com/chiesaevangelicadiudine/") {
-                                UIApplication.shared.open(url)
+                            
+                            HStack {
+                                
+                                Image(systemName: "map.fill")
+                                
+                                Text("Dove siamo")
+                                    .fontWeight(.bold)
                             }
-                        } label: {
-                            Image("instagram")
-                                .resizable()
-                                .scaledToFit()
-                                .frame(width: 80, height: 80)
+                            .foregroundColor(.white)
+                            .padding()
+                            .frame(maxWidth: .infinity)
+                            .background(Color.teal)
+                            .cornerRadius(20)
+                            .padding(.horizontal)
                         }
-
-                        Button {
-                            if let url = URL(string: "https://www.facebook.com/share/1HxDBZvDhC/?mibextid=wwXIfr") {
-                                UIApplication.shared.open(url)
+                        HStack(spacing: 35) {
+                            
+                            Button {
+                                if let url = URL(string: "https://www.youtube.com/channel/UCqtwkH2xz1fFoTObbDXcpOw") {
+                                    UIApplication.shared.open(url)
+                                }
+                            } label: {
+                                Image("youtube")
+                                    .resizable()
+                                    .scaledToFit()
+                                    .frame(width: 80, height: 80)
                             }
+                            
+                            Button {
+                                if let url = URL(string: "https://www.instagram.com/chiesaevangelicadiudine/") {
+                                    UIApplication.shared.open(url)
+                                }
+                            } label: {
+                                Image("instagram")
+                                    .resizable()
+                                    .scaledToFit()
+                                    .frame(width: 80, height: 80)
+                            }
+                            
+                            Button {
+                                if let url = URL(string: "https://www.facebook.com/share/1HxDBZvDhC/?mibextid=wwXIfr") {
+                                    UIApplication.shared.open(url)
+                                }
+                            } label: {
+                                Image("facebook")
+                                    .resizable()
+                                    .scaledToFit()
+                                    .frame(width: 80, height: 80)
+                            }
+                        }
+                        .padding(.vertical, 10)
+                        Spacer()
+                        Button {
+                            
+                            showAudioSettings = true
+                            
                         } label: {
-                            Image("facebook")
-                                .resizable()
-                                .scaledToFit()
-                                .frame(width: 80, height: 80)
+                            
+                            HStack {
+                                
+                                Image(systemName: "speaker.wave.3.fill")
+                                
+                                Text("Impostazioni Audio")
+                                    .fontWeight(.bold)
+                            }
+                            .foregroundColor(.white)
+                            .padding()
+                            .frame(maxWidth: .infinity)
+                            .background(Color.orange)
+                            .cornerRadius(20)
+                            .padding(.horizontal)
                         }
+                        Text("© CCE Friulana di Udine")
+                            .font(.footnote)
+                            .foregroundColor(.gray)
+                            .padding(.bottom)
                     }
-                    .padding(.vertical, 10)
-                    Spacer()
-                    Button {
-
-                        showAudioSettings = true
-
-                    } label: {
-
-                        HStack {
-
-                            Image(systemName: "speaker.wave.3.fill")
-
-                            Text("Impostazioni Audio")
-                                .fontWeight(.bold)
-                        }
-                        .foregroundColor(.white)
-                        .padding()
-                        .frame(maxWidth: .infinity)
-                        .background(Color.orange)
-                        .cornerRadius(20)
-                        .padding(.horizontal)
-                    }
-                    Text("© CCE Friulana di Udine")
-                        .font(.footnote)
-                        .foregroundColor(.gray)
-                        .padding(.bottom)
                 }
-            }
-            .fullScreenCover(isPresented: $showDailyVerse) {
-                DailyVerseView()
-            }
-            .fullScreenCover(isPresented: $showBible) {
+                .fullScreenCover(isPresented: $showDailyVerse) {
+                    DailyVerseView()
+                }
+                .fullScreenCover(isPresented: $showBible) {
+                    
+                    BibleView()
+                }
                 
-                BibleView()
-            }
-            
-            .fullScreenCover(isPresented: $showWebsite) {
+                .fullScreenCover(isPresented: $showWebsite) {
+                    
+                    WebsiteView(
+                        url: URL(
+                            string:
+                                "https://www.chiesacristianaudine.it"
+                        )!,
+                        title: "Sito Web"
+                    )
+                }
                 
-                WebsiteView(
-                    url: URL(
-                        string:
-                        "https://www.chiesacristianaudine.it"
-                    )!,
-                    title: "Sito Web"
-                )
+                .fullScreenCover(isPresented: $showYoutube) {
+                    
+                    WebsiteView(
+                        url: URL(
+                            string: "https://www.youtube.com/channel/UCqtwkH2xz1fFoTObbDXcpOw"
+                        )!,
+                        title: "YouTube"
+                    )
+                }
+                
+                .sheet(isPresented: $showAudioSettings) {
+                    AudioSettingsView()
+                }
+                
             }
-            
-            .fullScreenCover(isPresented: $showYoutube) {
-
-                WebsiteView(
-                    url: URL(
-                        string: "https://www.youtube.com/channel/UCqtwkH2xz1fFoTObbDXcpOw"
-                    )!,
-                    title: "YouTube"
-                )
-            }
-
-            .sheet(isPresented: $showAudioSettings) {
-                AudioSettingsView()
-            }
-
-           }
-            }
+        }
     }
 
