@@ -3,6 +3,7 @@ import AVKit
 import AVFoundation
 import Speech
 import WebKit
+import StoreKit
 
 struct AudioTrack: Identifiable {
 
@@ -114,6 +115,29 @@ struct BibleView: View {
     @State private var audioPlayer: AVAudioPlayer?
     @State private var isPlayingMusic = false
     let speechSynthesizer = AVSpeechSynthesizer()
+    
+    @FocusState private var isSearchFocused: Bool
+
+    private func performSearch() {
+        // Trim spaces and ensure there's text to search
+        searchText = searchText.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !searchText.isEmpty else { return }
+        // Dismiss keyboard
+        isSearchFocused = false
+    }
+    
+    private func performVerseSearch() {
+        // Ensure valid range
+        if endVerse < startVerse {
+            swap(&startVerse, &endVerse)
+        }
+        // Clear text search to show range results
+        if !searchText.isEmpty {
+            searchText = ""
+        }
+        // Dismiss keyboard if active
+        isSearchFocused = false
+    }
     
     var books: [String] {
         
@@ -273,13 +297,27 @@ struct BibleView: View {
                 VStack(spacing: 2) {
                     
                     HStack {
-                        
                         Image(systemName: "magnifyingglass")
-                        
+
                         TextField(
                             "Cerca una parola nella Bibbia...",
                             text: $searchText
                         )
+                        .focused($isSearchFocused)
+                        .submitLabel(.search)
+                        .onSubmit {
+                            performSearch()
+                        }
+
+                        Button {
+                            performSearch()
+                        } label: {
+                            Text("Cerca")
+                                .font(.callout)
+                                .fontWeight(.semibold)
+                        }
+                        .buttonStyle(.plain)
+                        .foregroundColor(.blue)
                     }
                     .padding()
                     .background(Color.gray.opacity(0.1))
@@ -301,29 +339,26 @@ struct BibleView: View {
                     .padding(.horizontal)
                     
                     HStack(spacing: 8) {
-                        
                         VStack {
                             Text("Cap.")
                                 .font(.caption)
-                            
                             Picker("", selection: $selectedChapter) {
                                 ForEach(chapters, id: \.self) { chapter in
                                     Text("\(chapter)")
                                 }
                             }
                         }
-                        
+
                         VStack {
                             Text("Da")
                                 .font(.caption)
-                            
                             Picker("", selection: $startVerse) {
                                 ForEach(verseNumbers, id: \.self) { verse in
                                     Text("\(verse)")
                                 }
                             }
                         }
-                        
+
                         VStack {
                             Text("A")
                                 .font(.caption)
@@ -333,12 +368,17 @@ struct BibleView: View {
                                 }
                             }
                         }
+
+                        Button {
+                            performVerseSearch()
+                        } label: {
+                            Text("Cerca")
+                                .font(.callout)
+                                .fontWeight(.semibold)
+                        }
+                        .buttonStyle(.plain)
+                        .foregroundColor(.blue)
                     }
-                    .pickerStyle(.menu)
-                    .padding()
-                    .background(Color.gray.opacity(0.1))
-                    .cornerRadius(15)
-                    .padding(.horizontal)
                     
                     HStack(spacing: 30) {
                         Button {
@@ -575,6 +615,8 @@ struct BibleView: View {
 } // End of BibleView
 
 struct ContentView: View {
+    private let firstLaunchKey = "firstLaunchDate"
+    private let didRequestReviewKey = "didRequestReviewOnce"
 
     @State private var showBible = false
     @State private var showAudio = false
@@ -773,6 +815,38 @@ struct ContentView: View {
             }
             .sheet(isPresented: $showAudioSettings) {
                 AudioSettingsView()
+            }
+            .onAppear {
+                checkAndRequestReviewIfNeeded()
+            }
+        }
+    }
+
+    private func checkAndRequestReviewIfNeeded() {
+        let defaults = UserDefaults.standard
+        let now = Date()
+
+        // Record first launch date if missing
+        if defaults.object(forKey: firstLaunchKey) == nil {
+            defaults.set(now, forKey: firstLaunchKey)
+            return
+        }
+
+        // Avoid requesting more than once
+        if defaults.bool(forKey: didRequestReviewKey) {
+            return
+        }
+
+        guard let firstLaunch = defaults.object(forKey: firstLaunchKey) as? Date else { return }
+        let daysSinceFirstLaunch = Calendar.current.dateComponents([.day], from: firstLaunch, to: now).day ?? 0
+
+        if daysSinceFirstLaunch >= 5 {
+            // Try to request review in the current active scene
+            if let scene = UIApplication.shared.connectedScenes
+                .compactMap({ $0 as? UIWindowScene })
+                .first(where: { $0.activationState == .foregroundActive }) {
+                SKStoreReviewController.requestReview(in: scene)
+                defaults.set(true, forKey: didRequestReviewKey)
             }
         }
     }
