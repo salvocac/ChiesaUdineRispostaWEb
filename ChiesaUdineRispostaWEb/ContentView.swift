@@ -112,6 +112,9 @@ struct BibleView: View {
     @State private var shareImage: UIImage?
     @State private var verses: [BibleVerse] = []
     
+    @State private var isSelecting = false
+    @State private var selectedIDs: Set<String> = []
+    
     // Added properties for audio playback and speech synthesis
     @State private var audioPlayer: AVAudioPlayer?
     @State private var isPlayingMusic = false
@@ -244,6 +247,21 @@ struct BibleView: View {
         \(chapterText)
         """
     }
+    var selectedShareText: String {
+        let versesToShare: [BibleVerse]
+        if isSelecting && !selectedIDs.isEmpty {
+            let pool = searchText.isEmpty ? filteredVerses : displayedVerses
+            versesToShare = pool.filter { v in
+                let id = "\(v.book_name)|\(v.chapter)|\(v.verse)"
+                return selectedIDs.contains(id)
+            }
+        } else {
+            versesToShare = []
+        }
+        return versesToShare.map { v in
+            "\(v.book_name) \(v.chapter):\(v.verse)\n\(v.text)"
+        }.joined(separator: "\n\n")
+    }
     
     // Function to start playing relax music
     func playRelaxMusic() {
@@ -323,6 +341,38 @@ struct BibleView: View {
                     .padding()
                     .background(Color.gray.opacity(0.1))
                     .cornerRadius(12)
+                    .padding(.horizontal)
+                    
+                    HStack(spacing: 12) {
+                        Button {
+                            isSelecting.toggle()
+                            if !isSelecting { selectedIDs.removeAll() }
+                        } label: {
+                            Text(isSelecting ? "Fine selezione" : "Seleziona versetti")
+                                .font(.callout)
+                                .fontWeight(.semibold)
+                        }
+                        .buttonStyle(.plain)
+                        .foregroundColor(.blue)
+
+                        Spacer()
+
+                        if isSelecting {
+                            Button {
+                                // Apri ShareSheet con i versetti selezionati
+                                if !selectedIDs.isEmpty {
+                                    showShareSheet = true
+                                }
+                            } label: {
+                                Text("Condividi selezionati")
+                                    .font(.callout)
+                                    .fontWeight(.semibold)
+                            }
+                            .buttonStyle(.plain)
+                            .foregroundColor(selectedIDs.isEmpty ? .gray : .blue)
+                            .disabled(selectedIDs.isEmpty)
+                        }
+                    }
                     .padding(.horizontal)
                     
                     Picker("Libro", selection: $selectedBook) {
@@ -479,7 +529,6 @@ struct BibleView: View {
                             
 
                                 createVerseImage()
-                                showShareSheet = true
 
                             } label: {                            VStack {
                                 
@@ -508,28 +557,38 @@ struct BibleView: View {
                             ForEach(displayedVerses) { verse in
                                 
                                 HStack(alignment: .top, spacing: 12) {
-                                    
+                                    if isSelecting {
+                                        let id = "\(verse.book_name)|\(verse.chapter)|\(verse.verse)"
+                                        Button {
+                                            if selectedIDs.contains(id) {
+                                                selectedIDs.remove(id)
+                                            } else {
+                                                selectedIDs.insert(id)
+                                            }
+                                        } label: {
+                                            Image(systemName: selectedIDs.contains(id) ? "checkmark.circle.fill" : "circle")
+                                                .foregroundColor(selectedIDs.contains(id) ? .blue : .gray)
+                                                .font(.system(size: 22))
+                                        }
+                                        .buttonStyle(.plain)
+                                    }
+
                                     if searchText.isEmpty {
-                                        
                                         Text("\(verse.verse)")
                                             .foregroundColor(.blue)
                                             .frame(width: 30)
-                                        
                                     } else {
-                                        
                                         VStack(alignment: .leading, spacing: 2) {
-                                            
                                             Text(verse.book_name)
                                                 .font(.caption)
                                                 .fontWeight(.bold)
-                                            
                                             Text("\(verse.chapter):\(verse.verse)")
                                                 .font(.caption2)
                                         }
                                         .foregroundColor(.blue)
                                         .frame(width: 90, alignment: .leading)
                                     }
-                                    
+
                                     Text(verse.text)
                                         .font(.system(size: 18))
                                         .frame(maxWidth: .infinity, alignment: .leading)
@@ -593,9 +652,9 @@ struct BibleView: View {
 
                         ShareSheet(
                             items: [
-                                searchText.isEmpty
-                                ? shareText
-                                : searchShareText
+                                isSelecting && !selectedShareText.isEmpty
+                                ? selectedShareText
+                                : (searchText.isEmpty ? shareText : searchShareText)
                             ]
                         )
                     }
@@ -629,17 +688,28 @@ struct BibleView: View {
     @MainActor
     private func createVerseImage() {
 
-        let card = VerseCardView(
+        print("🔥 createVerseImage chiamata")
+
+        let card = BrandedVerseShareCard(
             reference: "\(selectedBook) \(selectedChapter):\(startVerse)",
-            verse: filteredVerses.first?.text ?? ""
+            verse: chapterText
         )
+        .frame(width: 1080, height: 1440) // 3:4 ad alta risoluzione
+        .background(Color.white)
 
+        // Rendering sincrono su main per evitare problemi di timing
         let renderer = ImageRenderer(content: card)
+        renderer.scale = 1 // frame grande, qualità già elevata
 
-        renderer.scale = 3
-        shareImage = renderer.uiImage
+        if let image = renderer.uiImage {
+            print("✅ Immagine generata")
+            shareImage = image
+            showShareSheet = true
+        } else {
+            print("❌ renderer.uiImage NIL - non apro lo sheet, uso eventualmente fallback testuale manuale")
+        }
     }
-} // End of BibleView
+} // <-- Added closing brace for BibleView
 
 struct ContentView: View {
     private let firstLaunchKey = "firstLaunchDate"
@@ -881,6 +951,48 @@ struct ContentView: View {
 }
 // MARK: - 3:4 Branded Components
 
+struct BrandedVerseShareCard: View {
+    let reference: String
+    let verse: String
+
+    var body: some View {
+        ZStack(alignment: .bottomTrailing) {
+            // Background card with subtle shadow
+            RoundedRectangle(cornerRadius: 28, style: .continuous)
+                .fill(Color.white)
+                .shadow(color: Color.black.opacity(0.08), radius: 18, x: 0, y: 8)
+
+            // Verse content
+            VStack(alignment: .leading, spacing: 16) {
+                Text(reference)
+                    .font(.system(size: 48, weight: .semibold))
+                    .foregroundColor(.black)
+
+                Text(verse)
+                    .font(.system(size: 44, weight: .regular))
+                    .foregroundColor(.black)
+                    .multilineTextAlignment(.leading)
+                    .lineSpacing(6)
+            }
+            .padding(80)
+
+            // Brand logo (semplificato per rendering affidabile)
+            Image("logo")
+                .resizable()
+                .scaledToFit()
+                .frame(width: 120)
+                .padding(28)
+        }
+        .background(Color.white)
+        .clipShape(RoundedRectangle(cornerRadius: 28, style: .continuous))
+        .overlay(
+            RoundedRectangle(cornerRadius: 28, style: .continuous)
+                .stroke(Color.black.opacity(0.05), lineWidth: 2)
+        )
+        .aspectRatio(3/4, contentMode: .fit)
+    }
+}
+
 struct BrandedCard<Content: View>: View {
     let cornerRadius: CGFloat
     let content: Content
@@ -956,4 +1068,5 @@ BrandedCard {
 
 // Inseriscilo dove vuoi (ad es. in DailyVerseView, nella condivisione social o nelle schermate con immagini)
 */
+
 
