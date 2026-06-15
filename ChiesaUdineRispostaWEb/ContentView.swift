@@ -109,6 +109,7 @@ struct BibleView: View {
     @State private var copied = false
     @State private var searchText = ""
     @State private var showShareSheet = false
+    @State private var shareImage: UIImage?
     @State private var verses: [BibleVerse] = []
     
     // Added properties for audio playback and speech synthesis
@@ -476,11 +477,11 @@ struct BibleView: View {
                         }
                         Button {
                             
-                            showShareSheet = true
-                            
-                        } label: {
-                            
-                            VStack {
+
+                                createVerseImage()
+                                showShareSheet = true
+
+                            } label: {                            VStack {
                                 
                                 Image(systemName: "square.and.arrow.up.fill")
                                     .font(.system(size: 30))
@@ -499,6 +500,7 @@ struct BibleView: View {
                             .font(.caption)
                             .foregroundColor(.green)
                     }
+                  
                     ScrollView {
                         
                         LazyVStack(alignment: .leading, spacing: 12) {
@@ -580,11 +582,23 @@ struct BibleView: View {
                 }
                 
                 .sheet(isPresented: $showShareSheet) {
-                    ShareSheet(
-                        items: [
-                            searchText.isEmpty ? shareText : searchShareText
-                        ]
-                    )
+
+                    if let shareImage {
+
+                        ShareSheet(
+                            items: [shareImage]
+                        )
+
+                    } else {
+
+                        ShareSheet(
+                            items: [
+                                searchText.isEmpty
+                                ? shareText
+                                : searchShareText
+                            ]
+                        )
+                    }
                 }
             }
         }
@@ -612,6 +626,19 @@ struct BibleView: View {
             print(error)
         }
     }
+    @MainActor
+    private func createVerseImage() {
+
+        let card = VerseCardView(
+            reference: "\(selectedBook) \(selectedChapter):\(startVerse)",
+            verse: filteredVerses.first?.text ?? ""
+        )
+
+        let renderer = ImageRenderer(content: card)
+
+        renderer.scale = 3
+        shareImage = renderer.uiImage
+    }
 } // End of BibleView
 
 struct ContentView: View {
@@ -627,6 +654,7 @@ struct ContentView: View {
     @State private var showDailyVerse = false
     @State private var showAudioSettings = false
 
+   
     var body: some View {
 
         NavigationStack {
@@ -851,3 +879,81 @@ struct ContentView: View {
         }
     }
 }
+// MARK: - 3:4 Branded Components
+
+struct BrandedCard<Content: View>: View {
+    let cornerRadius: CGFloat
+    let content: Content
+
+    init(cornerRadius: CGFloat = 16, @ViewBuilder content: () -> Content) {
+        self.cornerRadius = cornerRadius
+        self.content = content()
+    }
+
+    var body: some View {
+        ZStack(alignment: .bottomTrailing) {
+            content
+                .clipShape(RoundedRectangle(cornerRadius: cornerRadius, style: .continuous))
+                .overlay(
+                    RoundedRectangle(cornerRadius: cornerRadius, style: .continuous)
+                        .stroke(Color.black.opacity(0.05), lineWidth: 1)
+                )
+
+            Image("logo")
+                .resizable()
+                .scaledToFit()
+                .frame(width: 36)
+                .padding(8)
+                .background(.ultraThinMaterial, in: RoundedRectangle(cornerRadius: 10, style: .continuous))
+                .padding(10)
+        }
+        .aspectRatio(3.0/4.0, contentMode: .fit)
+    }
+}
+
+struct BrandedImage: View {
+    let name: String
+    let cornerRadius: CGFloat
+
+    init(_ name: String, cornerRadius: CGFloat = 16) {
+        self.name = name
+        self.cornerRadius = cornerRadius
+    }
+
+    var body: some View {
+        BrandedCard(cornerRadius: cornerRadius) {
+            Image(name)
+                .resizable()
+                .scaledToFill()
+                .background(Color.black.opacity(0.02))
+        }
+    }
+}
+
+/*
+USO ESEMPIO:
+
+// 1) Immagine brandizzata 3:4
+BrandedImage("nomeImmagine")
+    .frame(maxWidth: 300) // opzionale
+
+// 2) Contenuto personalizzato 3:4 con overlay del logo
+BrandedCard {
+    LinearGradient(colors: [.blue, .purple], startPoint: .topLeading, endPoint: .bottomTrailing)
+        .overlay(
+            VStack(alignment: .leading, spacing: 8) {
+                Text("Titolo")
+                    .font(.title2).bold()
+                    .foregroundColor(.white)
+                Text("Sottotitolo o versetto")
+                    .font(.headline)
+                    .foregroundColor(.white.opacity(0.9))
+            }
+            .padding()
+        )
+}
+.frame(maxWidth: 320) // opzionale
+
+// Inseriscilo dove vuoi (ad es. in DailyVerseView, nella condivisione social o nelle schermate con immagini)
+*/
+
