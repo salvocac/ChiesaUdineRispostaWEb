@@ -126,6 +126,49 @@ struct BibleView: View {
         // Trim spaces and ensure there's text to search
         searchText = searchText.trimmingCharacters(in: .whitespacesAndNewlines)
         guard !searchText.isEmpty else { return }
+
+        // Try to parse as a Bible reference like "salmi 23:1" or "giovanni 3 16"
+        if let ref = BibleReferenceParser.parse(searchText) {
+            // Save current state for rollback in case no results are found
+            let oldBook = selectedBook
+            let oldChapter = selectedChapter
+            let oldStart = startVerse
+            let oldEnd = endVerse
+
+            // Update selection based on parsed reference
+            selectedBook = ref.book.capitalized
+            if let chapter = ref.chapter {
+                selectedChapter = chapter
+            }
+            if let verse = ref.verse {
+                startVerse = verse
+                endVerse = verse
+            } else {
+                if let first = verseNumbers.first {
+                    startVerse = first
+                }
+                if let last = verseNumbers.last {
+                    endVerse = last
+                }
+            }
+
+            // Validate that the new selection actually yields verses
+            if filteredVerses.isEmpty {
+                // Roll back and keep textual search
+                selectedBook = oldBook
+                selectedChapter = oldChapter
+                startVerse = oldStart
+                endVerse = oldEnd
+                // Do NOT clear searchText so the textual search remains visible
+            } else {
+                // We have results for the reference; clear to show filtered view
+                searchText = ""
+            }
+        } else {
+            // Not a reference: keep textual search active
+            // searchResults will use searchText
+        }
+
         // Dismiss keyboard
         isSearchFocused = false
     }
@@ -390,6 +433,24 @@ struct BibleView: View {
                     .padding(.horizontal)
                     
                     HStack(spacing: 8) {
+                        // Freccia indietro capitolo
+                        Button {
+                            let caps = chapters.sorted()
+                            if let currentIdx = caps.firstIndex(of: selectedChapter), currentIdx > 0 {
+                                selectedChapter = caps[caps.index(before: currentIdx)]
+                                if let first = verseNumbers.first {
+                                    startVerse = first
+                                    endVerse = first
+                                }
+                            }
+                        } label: {
+                            Image(systemName: "chevron.left.circle.fill")
+                                .font(.system(size: 22))
+                                .foregroundColor(.blue)
+                                .accessibilityLabel("Capitolo precedente")
+                        }
+                        .buttonStyle(.plain)
+
                         VStack {
                             Text("Cap.")
                                 .font(.caption)
@@ -399,6 +460,25 @@ struct BibleView: View {
                                 }
                             }
                         }
+
+                        // Freccia avanti capitolo
+                        Button {
+                            let caps = chapters.sorted()
+                            if let currentIdx = caps.firstIndex(of: selectedChapter),
+                               caps.index(after: currentIdx) < caps.endIndex {
+                                selectedChapter = caps[caps.index(after: currentIdx)]
+                                if let first = verseNumbers.first {
+                                    startVerse = first
+                                    endVerse = first
+                                }
+                            }
+                        } label: {
+                            Image(systemName: "chevron.right.circle.fill")
+                                .font(.system(size: 22))
+                                .foregroundColor(.blue)
+                                .accessibilityLabel("Capitolo successivo")
+                        }
+                        .buttonStyle(.plain)
 
                         VStack {
                             Text("Da")

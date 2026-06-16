@@ -26,9 +26,9 @@ final class BibleAudioManager: NSObject, ObservableObject, AVSpeechSynthesizerDe
                 .playback,
                 mode: .spokenAudio,
                 options: [
-                    .duckOthers,
+                    
                     .allowAirPlay
-                ]
+                    ]
             )
             
             try AVAudioSession.sharedInstance().setActive(
@@ -66,7 +66,7 @@ final class BibleAudioManager: NSObject, ObservableObject, AVSpeechSynthesizerDe
             utterance.voice = voice
         }
 
-        utterance.rate = 0.32
+        utterance.rate = 0.28
         utterance.pitchMultiplier = 0.95
         utterance.volume = 1.0
         utterance.preUtteranceDelay = 0
