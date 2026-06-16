@@ -16,7 +16,7 @@ final class BibleManager {
     private func loadBible() {
 
         guard let url = Bundle.main.url(
-            forResource: "diodati",
+            forResource: "riveduta",
             withExtension: "json"
         ) else {
 

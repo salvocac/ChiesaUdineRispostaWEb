@@ -144,12 +144,12 @@ struct BibleView: View {
     }
     
     var books: [String] {
-        
+
         let orderedBooks = Dictionary(
             grouping: verses,
             by: { $0.book }
         )
-        
+
         return orderedBooks
             .sorted { $0.key < $1.key }
             .compactMap { $0.value.first?.book_name }
@@ -665,7 +665,7 @@ struct BibleView: View {
     
     private func loadBible() {
         guard let url = Bundle.main.url(
-            forResource: "diodati",
+            forResource: "riveduta",
             withExtension: "json"
         ) else {
             print("❌ File JSON non trovato")
@@ -872,7 +872,7 @@ struct ContentView: View {
                         HStack {
                             Image(systemName: "speaker.wave.3.fill")
 
-                            Text("Impostazioni Audio")
+                            Text("Migliora la qualità della voce")
                                 .fontWeight(.bold)
                         }
                         .foregroundColor(.white)

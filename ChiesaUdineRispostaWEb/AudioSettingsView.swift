@@ -20,10 +20,24 @@ struct AudioSettingsView: View {
                     Picker("Voce", selection: $selectedVoiceIdentifier) {
 
                         ForEach(voices, id: \.identifier) { voice in
+
                             Text(voice.name)
                                 .tag(voice.identifier)
                         }
                     }
+                }
+
+                Section("Consiglio") {
+
+                    Text("""
+                    Per una voce più naturale installa una voce premium Apple.
+
+                    Vai in:
+                    Impostazioni → Accessibilità → Contenuto letto → Voci → Italiano
+
+                    e scarica Luca o Elsa in qualità avanzata.
+                    """)
+                    .font(.footnote)
                 }
             }
             .navigationTitle("Audio")
