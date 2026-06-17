@@ -438,10 +438,8 @@ struct BibleView: View {
                             let caps = chapters.sorted()
                             if let currentIdx = caps.firstIndex(of: selectedChapter), currentIdx > 0 {
                                 selectedChapter = caps[caps.index(before: currentIdx)]
-                                if let first = verseNumbers.first {
-                                    startVerse = first
-                                    endVerse = first
-                                }
+                                if let first = verseNumbers.first { startVerse = first }
+                                if let last = verseNumbers.last { endVerse = last }
                             }
                         } label: {
                             Image(systemName: "chevron.left.circle.fill")
@@ -467,10 +465,8 @@ struct BibleView: View {
                             if let currentIdx = caps.firstIndex(of: selectedChapter),
                                caps.index(after: currentIdx) < caps.endIndex {
                                 selectedChapter = caps[caps.index(after: currentIdx)]
-                                if let first = verseNumbers.first {
-                                    startVerse = first
-                                    endVerse = first
-                                }
+                                if let first = verseNumbers.first { startVerse = first }
+                                if let last = verseNumbers.last { endVerse = last }
                             }
                         } label: {
                             Image(systemName: "chevron.right.circle.fill")
@@ -713,11 +709,8 @@ struct BibleView: View {
                 
                 .onChange(of: selectedChapter) {
                     
-                    if let first = verseNumbers.first {
-                        
-                        startVerse = first
-                        endVerse = first
-                    }
+                    if let first = verseNumbers.first { startVerse = first }
+                    if let last = verseNumbers.last { endVerse = last }
                 }
                 
                 .sheet(isPresented: $showShareSheet) {
@@ -757,10 +750,8 @@ struct BibleView: View {
             let bibleData = try JSONDecoder().decode(BibleData.self, from: data)
             verses = bibleData.verses
 
-            if let first = verseNumbers.first {
-                startVerse = first
-                endVerse = first
-            }
+            if let first = verseNumbers.first { startVerse = first }
+            if let last = verseNumbers.last { endVerse = last }
         } catch {
             print(error)
         }
